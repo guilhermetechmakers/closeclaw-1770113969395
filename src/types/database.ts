@@ -86,6 +86,21 @@ export interface Database {
         Insert: UserReportInsert;
         Update: never;
       };
+      security_audits: {
+        Row: SecurityAudit;
+        Insert: SecurityAuditInsert;
+        Update: SecurityAuditUpdate;
+      };
+      security_issues: {
+        Row: SecurityIssue;
+        Insert: SecurityIssueInsert;
+        Update: SecurityIssueUpdate;
+      };
+      incident_actions: {
+        Row: IncidentAction;
+        Insert: IncidentActionInsert;
+        Update: IncidentActionUpdate;
+      };
     };
   };
 }
@@ -134,6 +149,98 @@ export interface UserReportInsert {
   description: string;
   contact_email?: string | null;
   context?: Record<string, unknown>;
+}
+
+// ========== Security Audit ==========
+
+export interface SecurityAudit {
+  id: string;
+  user_id: string;
+  risk_score: number;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecurityAuditInsert {
+  id?: string;
+  user_id: string;
+  risk_score?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SecurityAuditUpdate {
+  risk_score?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export type SecurityIssueSeverity = 'critical' | 'high' | 'medium' | 'low';
+
+export interface SecurityIssue {
+  id: string;
+  audit_id: string;
+  description: string;
+  severity: SecurityIssueSeverity;
+  affected_files: string[];
+  remediation: string | null;
+  auto_fix_available: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecurityIssueInsert {
+  id?: string;
+  audit_id: string;
+  description: string;
+  severity: SecurityIssueSeverity;
+  affected_files?: string[];
+  remediation?: string | null;
+  auto_fix_available?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SecurityIssueUpdate {
+  description?: string;
+  severity?: SecurityIssueSeverity;
+  affected_files?: string[];
+  remediation?: string | null;
+  auto_fix_available?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export type IncidentActionType =
+  | 'revoke_sessions'
+  | 'rotate_secrets'
+  | 'export_logs'
+  | 'stop_blast_radius'
+  | 'quarantine_skill';
+
+export type IncidentActionStatus = 'pending' | 'completed' | 'failed';
+
+export interface IncidentAction {
+  id: string;
+  audit_id: string | null;
+  user_id: string;
+  action_type: IncidentActionType;
+  status: IncidentActionStatus;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IncidentActionInsert {
+  id?: string;
+  audit_id?: string | null;
+  user_id: string;
+  action_type: IncidentActionType;
+  status?: IncidentActionStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export interface IncidentActionUpdate {
+  status?: IncidentActionStatus;
+  metadata?: Record<string, unknown>;
 }
 
 // ========== Logs & Tracing ==========

@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203320000_create_security_audit_tables",
+  "created_at": "2025-02-03T32:00:00Z",
+  "description": "Create security_audits, security_issues, and incident_actions for Security Audit page",
+  "tables_created": ["security_audits", "security_issues", "incident_actions"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS incident_actions CASCADE; DROP TABLE IF EXISTS security_issues CASCADE; DROP TABLE IF EXISTS security_audits CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}
