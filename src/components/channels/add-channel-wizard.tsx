@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useEffect } from 'react';
 import { MessageCircle, Radio, ChevronRight, ChevronLeft, QrCode } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChannelProvider } from '@/types/database';
@@ -57,6 +58,8 @@ interface AddChannelWizardProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (payload: AddChannelWizardPayload) => void;
   isSubmitting?: boolean;
+  /** Pre-select provider when opening from platform panel */
+  initialProvider?: ChannelProvider;
 }
 
 const steps = [
@@ -71,13 +74,20 @@ export function AddChannelWizard({
   onOpenChange,
   onSubmit,
   isSubmitting = false,
+  initialProvider,
 }: AddChannelWizardProps) {
   const [step, setStep] = useState(1);
 
   const form1 = useForm<Step1Values>({
     resolver: zodResolver(step1Schema),
-    defaultValues: { provider: 'telegram', display_name: '' },
+    defaultValues: { provider: initialProvider ?? 'telegram', display_name: '' },
   });
+
+  useEffect(() => {
+    if (open && initialProvider) {
+      form1.setValue('provider', initialProvider);
+    }
+  }, [open, initialProvider, form1]);
 
   const form2 = useForm<Step2Values>({
     resolver: zodResolver(step2Schema),

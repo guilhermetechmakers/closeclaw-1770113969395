@@ -8,6 +8,11 @@ import type {
   AdapterConfigurationUpdate,
   DeliveryLog,
   DeliveryLogInsert,
+  UserMapping,
+  UserMappingInsert,
+  UserMappingUpdate,
+  ChannelAdapterMessage,
+  ChannelAdapterMessageInsert,
 } from '@/types/database';
 
 export const channelsApi = {
@@ -152,5 +157,105 @@ export const channelsApi = {
       .single();
     if (error) throw new Error(error.message);
     return data as DeliveryLog;
+  },
+
+  // User mappings (identity mapping per channel)
+  getUserMappings: async (channelId: string | null): Promise<UserMapping[]> => {
+    if (!channelId) return [];
+    const { data, error } = await supabase
+      .from('user_mappings')
+      .select('*')
+      .eq('channel_id', channelId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as UserMapping[];
+  },
+
+  createUserMapping: async (payload: Omit<UserMappingInsert, 'user_id'>): Promise<UserMapping> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const row: UserMappingInsert = { ...payload, user_id: user.id };
+    const { data, error } = await supabase
+      .from('user_mappings')
+      .insert(row as never)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as UserMapping;
+  },
+
+  updateUserMapping: async (id: string, payload: UserMappingUpdate): Promise<UserMapping> => {
+    const { data, error } = await supabase
+      .from('user_mappings')
+      .update(payload as never)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as UserMapping;
+  },
+
+  deleteUserMapping: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('user_mappings').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+
+  // Channel adapter messages (routing/diagnostics log)
+  getChannelAdapterMessages: async (
+    channelId: string | null,
+    params?: { limit?: number; direction?: 'inbound' | 'outbound' }
+  ): Promise<ChannelAdapterMessage[]> => {
+    if (!channelId) return [];
+    let query = supabase
+      .from('channel_adapter_messages')
+      .select('*')
+      .eq('channel_id', channelId)
+      .order('created_at', { ascending: false });
+    if (params?.direction) query = query.eq('direction', params.direction);
+    if (params?.limit) query = query.limit(params.limit);
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ChannelAdapterMessage[];
+  },
+
+  createChannelAdapterMessage: async (
+    payload: Omit<ChannelAdapterMessageInsert, 'user_id'> & { user_id?: string | null }
+  ): Promise<ChannelAdapterMessage> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const row: ChannelAdapterMessageInsert = {
+      ...payload,
+      user_id: payload.user_id ?? user?.id ?? null,
+    };
+    const { data, error } = await supabase
+      .from('channel_adapter_messages')
+      .insert(row as never)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as ChannelAdapterMessage;
+  },
+
+  /** Send test message: creates delivery_log and optionally channel_adapter_message for diagnostics */
+  sendTestMessage: async (
+    channelId: string,
+    content: string
+  ): Promise<{ deliveryLog: DeliveryLog; message?: ChannelAdapterMessage }> => {
+    const deliveryLog = await channelsApi.createDeliveryLog({
+      channel_id: channelId,
+      event_type: 'test_message_outbound',
+      success: true,
+      metadata: { content: content.slice(0, 200), test: true },
+    });
+    try {
+      const message = await channelsApi.createChannelAdapterMessage({
+        channel_id: channelId,
+        content,
+        direction: 'outbound',
+        metadata: { test: true },
+      });
+      return { deliveryLog, message };
+    } catch {
+      return { deliveryLog };
+    }
   },
 };

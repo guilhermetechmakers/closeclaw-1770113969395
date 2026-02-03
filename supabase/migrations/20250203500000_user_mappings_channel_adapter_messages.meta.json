@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203500000_user_mappings_channel_adapter_messages",
+  "created_at": "2025-02-03T50:00:00Z",
+  "description": "Add user_mappings and channel_adapter_messages for identity mapping and message routing diagnostics",
+  "tables_created": ["user_mappings", "channel_adapter_messages"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS channel_adapter_messages CASCADE; DROP TABLE IF EXISTS user_mappings CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

@@ -46,6 +46,8 @@ export interface Database {
       channels: { Row: Channel; Insert: ChannelInsert; Update: ChannelUpdate };
       adapter_configurations: { Row: AdapterConfiguration; Insert: AdapterConfigurationInsert; Update: AdapterConfigurationUpdate };
       delivery_logs: { Row: DeliveryLog; Insert: DeliveryLogInsert };
+      user_mappings: { Row: UserMapping; Insert: UserMappingInsert; Update: UserMappingUpdate };
+      channel_adapter_messages: { Row: ChannelAdapterMessage; Insert: ChannelAdapterMessageInsert };
       browser_profiles: { Row: BrowserProfile; Insert: BrowserProfileInsert; Update: BrowserProfileUpdate };
       browser_tabs: { Row: BrowserTab; Insert: BrowserTabInsert; Update: BrowserTabUpdate };
       browser_scripts: { Row: BrowserScript; Insert: BrowserScriptInsert; Update: BrowserScriptUpdate };
@@ -953,6 +955,63 @@ export interface DeliveryLogInsert {
   event_type: string;
   success?: boolean;
   error_details?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+// ========== User Mappings (identity mapping per channel) ==========
+
+export type UserMappingStatus = 'active' | 'inactive' | 'pending';
+
+export interface UserMapping {
+  id: string;
+  user_id: string;
+  channel_id: string;
+  external_id: string;
+  display_name: string | null;
+  status: UserMappingStatus;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserMappingInsert {
+  id?: string;
+  user_id: string;
+  channel_id: string;
+  external_id: string;
+  display_name?: string | null;
+  status?: UserMappingStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UserMappingUpdate {
+  display_name?: string | null;
+  status?: UserMappingStatus;
+  metadata?: Record<string, unknown>;
+}
+
+// ========== Channel Adapter Messages (routing/diagnostics log) ==========
+
+export type ChannelAdapterMessageDirection = 'inbound' | 'outbound';
+
+export interface ChannelAdapterMessage {
+  id: string;
+  channel_id: string;
+  user_id: string | null;
+  external_sender_id: string | null;
+  content: string;
+  direction: ChannelAdapterMessageDirection;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ChannelAdapterMessageInsert {
+  id?: string;
+  channel_id: string;
+  user_id?: string | null;
+  external_sender_id?: string | null;
+  content: string;
+  direction: ChannelAdapterMessageDirection;
   metadata?: Record<string, unknown>;
 }
 

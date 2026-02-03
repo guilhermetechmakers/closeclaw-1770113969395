@@ -6,6 +6,8 @@ import type {
   ChannelUpdate,
   AdapterConfigurationInsert,
   DeliveryLogInsert,
+  UserMappingInsert,
+  UserMappingUpdate,
 } from '@/types/database';
 
 function safeGet<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
@@ -20,6 +22,12 @@ export const CHANNELS_KEYS = {
     [...CHANNELS_KEYS.all, 'adapterConfig', channelId] as const,
   deliveryLogs: (channelId: string | null, params?: { limit?: number; eventType?: string }) =>
     [...CHANNELS_KEYS.all, 'deliveryLogs', channelId, params] as const,
+  userMappings: (channelId: string | null) =>
+    [...CHANNELS_KEYS.all, 'userMappings', channelId] as const,
+  channelAdapterMessages: (
+    channelId: string | null,
+    params?: { limit?: number; direction?: 'inbound' | 'outbound' }
+  ) => [...CHANNELS_KEYS.all, 'channelAdapterMessages', channelId, params] as const,
 };
 
 export function useChannels() {
@@ -132,6 +140,93 @@ export function useCreateDeliveryLog() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to log event');
+    },
+  });
+}
+
+export function useUserMappings(channelId: string | null) {
+  return useQuery({
+    queryKey: CHANNELS_KEYS.userMappings(channelId),
+    queryFn: () =>
+      channelId ? channelsApi.getUserMappings(channelId) : Promise.resolve([]),
+    enabled: !!channelId,
+  });
+}
+
+export function useCreateUserMapping() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Omit<UserMappingInsert, 'user_id'>) =>
+      channelsApi.createUserMapping(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEYS.userMappings(variables.channel_id),
+      });
+      toast.success('Identity mapping added');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to add mapping');
+    },
+  });
+}
+
+export function useUpdateUserMapping() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UserMappingUpdate }) =>
+      channelsApi.updateUserMapping(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANNELS_KEYS.all });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update mapping');
+    },
+  });
+}
+
+export function useDeleteUserMapping() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => channelsApi.deleteUserMapping(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANNELS_KEYS.all });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to remove mapping');
+    },
+  });
+}
+
+export function useChannelAdapterMessages(
+  channelId: string | null,
+  params?: { limit?: number; direction?: 'inbound' | 'outbound' }
+) {
+  return useQuery({
+    queryKey: CHANNELS_KEYS.channelAdapterMessages(channelId, params),
+    queryFn: () =>
+      channelId
+        ? channelsApi.getChannelAdapterMessages(channelId, params)
+        : Promise.resolve([]),
+    enabled: !!channelId,
+  });
+}
+
+export function useSendTestMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ channelId, content }: { channelId: string; content: string }) =>
+      channelsApi.sendTestMessage(channelId, content),
+    onSuccess: (_, { channelId }) => {
+      queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEYS.deliveryLogs(channelId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEYS.channelAdapterMessages(channelId),
+      });
+      toast.success('Test message sent');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to send test message');
     },
   });
 }
