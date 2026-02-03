@@ -108,6 +108,14 @@ export interface Database {
         Insert: SecretAuditLogInsert;
         Update: never;
       };
+      model_providers: { Row: ModelProvider; Insert: ModelProviderInsert; Update: ModelProviderUpdate };
+      model_requests: { Row: ModelRequest; Insert: ModelRequestInsert; Update: ModelRequestUpdate };
+      usage_metrics: { Row: UsageMetric; Insert: UsageMetricInsert; Update: never };
+      configuration_overrides: {
+        Row: ConfigurationOverride;
+        Insert: ConfigurationOverrideInsert;
+        Update: ConfigurationOverrideUpdate;
+      };
     };
   };
 }
@@ -1482,4 +1490,131 @@ export interface SecretAuditLogInsert {
   secret_id?: string | null;
   action: string;
   details?: Record<string, unknown>;
+}
+
+// ========== Model Provider Abstraction ==========
+
+export type ModelProviderSlug =
+  | 'openai'
+  | 'anthropic'
+  | 'local'
+  | 'ollama'
+  | 'vllm'
+  | 'custom';
+
+export type ModelProviderStatus = 'active' | 'inactive' | 'error';
+
+export interface ModelProvider {
+  id: string;
+  user_id: string;
+  name: string;
+  slug: ModelProviderSlug;
+  api_endpoint_base: string | null;
+  supported_features: Record<string, unknown>;
+  is_default: boolean;
+  priority: number;
+  status: ModelProviderStatus;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ModelProviderInsert {
+  id?: string;
+  user_id: string;
+  name: string;
+  slug: ModelProviderSlug;
+  api_endpoint_base?: string | null;
+  supported_features?: Record<string, unknown>;
+  is_default?: boolean;
+  priority?: number;
+  status?: ModelProviderStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ModelProviderUpdate {
+  name?: string;
+  slug?: ModelProviderSlug;
+  api_endpoint_base?: string | null;
+  supported_features?: Record<string, unknown>;
+  is_default?: boolean;
+  priority?: number;
+  status?: ModelProviderStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export type ModelRequestStatus = 'pending' | 'running' | 'completed' | 'failed';
+
+export interface ModelRequest {
+  id: string;
+  user_id: string;
+  provider_id: string | null;
+  status: ModelRequestStatus;
+  request_metadata: Record<string, unknown>;
+  response_metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ModelRequestInsert {
+  id?: string;
+  user_id: string;
+  provider_id?: string | null;
+  status?: ModelRequestStatus;
+  request_metadata?: Record<string, unknown>;
+  response_metadata?: Record<string, unknown>;
+}
+
+export interface ModelRequestUpdate {
+  provider_id?: string | null;
+  status?: ModelRequestStatus;
+  request_metadata?: Record<string, unknown>;
+  response_metadata?: Record<string, unknown>;
+}
+
+export interface UsageMetric {
+  id: string;
+  user_id: string;
+  request_id: string;
+  provider_id: string | null;
+  token_count_input: number;
+  token_count_output: number;
+  created_at: string;
+}
+
+export interface UsageMetricInsert {
+  id?: string;
+  user_id: string;
+  request_id: string;
+  provider_id?: string | null;
+  token_count_input?: number;
+  token_count_output?: number;
+}
+
+export interface ConfigurationOverride {
+  id: string;
+  user_id: string;
+  request_id: string;
+  model_name: string | null;
+  temperature: number | null;
+  max_tokens: number | null;
+  parameters: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ConfigurationOverrideInsert {
+  id?: string;
+  user_id: string;
+  request_id: string;
+  model_name?: string | null;
+  temperature?: number | null;
+  max_tokens?: number | null;
+  parameters?: Record<string, unknown>;
+}
+
+export interface ConfigurationOverrideUpdate {
+  model_name?: string | null;
+  temperature?: number | null;
+  max_tokens?: number | null;
+  parameters?: Record<string, unknown>;
 }

@@ -1,0 +1,17 @@
+{
+  "migration_name": "20250203350000_create_model_provider_tables",
+  "created_at": "2025-02-03T35:00:00Z",
+  "description": "Model Provider Abstraction: providers, requests, usage_metrics, configuration_overrides",
+  "tables_created": [
+    "model_providers",
+    "model_requests",
+    "usage_metrics",
+    "configuration_overrides"
+  ],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS configuration_overrides CASCADE; DROP TABLE IF EXISTS usage_metrics CASCADE; DROP TABLE IF EXISTS model_requests CASCADE; DROP TABLE IF EXISTS model_providers CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

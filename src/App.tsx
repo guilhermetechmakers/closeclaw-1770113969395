@@ -20,6 +20,7 @@ import { SkillEditor } from '@/pages/skill-editor';
 import { Nodes } from '@/pages/nodes';
 import { Cron } from '@/pages/cron';
 import { Webhooks } from '@/pages/webhooks';
+import { ModelProviders } from '@/pages/model-providers';
 import { Browser } from '@/pages/browser';
 import { Voice } from '@/pages/voice';
 import { Settings } from '@/pages/settings';
@@ -73,6 +74,7 @@ export default function App() {
                 <Route path="/nodes" element={<Nodes />} />
                 <Route path="/cron" element={<Cron />} />
                 <Route path="/webhooks" element={<Webhooks />} />
+                <Route path="/model-providers" element={<ModelProviders />} />
                 <Route path="/browser" element={<Browser />} />
                 <Route path="/voice" element={<Voice />} />
                 <Route path="/secrets" element={<Secrets />} />
