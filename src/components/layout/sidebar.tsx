@@ -14,6 +14,7 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  User,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,7 @@ import { Separator } from '@/components/ui/separator';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/profile', label: 'Profile', icon: User },
   { to: '/chat', label: 'Chat Session', icon: MessageSquare },
   { to: '/channels', label: 'Channels & Adapters', icon: Plug },
   { to: '/skills', label: 'Skills Library', icon: BookOpen },

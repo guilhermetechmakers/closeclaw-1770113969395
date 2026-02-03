@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203120000_create_profiles_and_profile_tables",
+  "created_at": "2025-02-03T12:00:00.000Z",
+  "description": "Profiles, OAuth accounts, device sessions, API keys, security settings for User Profile page",
+  "tables_created": ["profiles", "oauth_accounts", "device_sessions", "api_keys", "security_settings"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS security_settings CASCADE; DROP TABLE IF EXISTS api_keys CASCADE; DROP TABLE IF EXISTS device_sessions CASCADE; DROP TABLE IF EXISTS oauth_accounts CASCADE; DROP TABLE IF EXISTS profiles CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

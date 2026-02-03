@@ -28,7 +28,15 @@ async function apiRequest<T>(
   return JSON.parse(text) as T;
 }
 
-export const api = {
+export interface Api {
+  get: <T>(endpoint: string) => Promise<T>;
+  post: <T>(endpoint: string, data: unknown) => Promise<T>;
+  put: <T>(endpoint: string, data: unknown) => Promise<T>;
+  patch: <T>(endpoint: string, data: unknown) => Promise<T>;
+  delete: (endpoint: string) => Promise<void>;
+}
+
+export const api: Api = {
   get: <T>(endpoint: string) => apiRequest<T>(endpoint),
   post: <T>(endpoint: string, data: unknown) =>
     apiRequest<T>(endpoint, { method: 'POST', body: JSON.stringify(data) }),
