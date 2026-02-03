@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203310000_create_user_reports",
+  "created_at": "2025-02-03T31:00:00Z",
+  "description": "Create user_reports table for error/support feedback",
+  "tables_created": ["user_reports"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS user_reports CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

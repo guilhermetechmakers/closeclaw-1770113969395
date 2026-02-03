@@ -81,6 +81,11 @@ export interface Database {
         Insert: ErrorLogInsert;
         Update: ErrorLogUpdate;
       };
+      user_reports: {
+        Row: UserReport;
+        Insert: UserReportInsert;
+        Update: never;
+      };
     };
   };
 }
@@ -109,6 +114,27 @@ export interface ErrorLogInsert {
 }
 
 export type ErrorLogUpdate = Partial<Omit<ErrorLogInsert, 'id'>>;
+
+// ========== User Reports (error/support feedback) ==========
+
+export interface UserReport {
+  id: string;
+  user_id: string | null;
+  error_type: string;
+  description: string;
+  contact_email: string | null;
+  context: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface UserReportInsert {
+  id?: string;
+  user_id?: string | null;
+  error_type: string;
+  description: string;
+  contact_email?: string | null;
+  context?: Record<string, unknown>;
+}
 
 // ========== Logs & Tracing ==========
 
