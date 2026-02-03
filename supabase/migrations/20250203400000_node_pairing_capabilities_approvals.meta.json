@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203400000_node_pairing_capabilities_approvals",
+  "created_at": "2025-02-03T40:00:00Z",
+  "description": "Add last_active_at to nodes; node_capabilities, node_approvals, pairing_requests for pairing and approval workflow",
+  "tables_created": ["node_capabilities", "node_approvals", "pairing_requests"],
+  "tables_modified": ["nodes"],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS pairing_requests CASCADE; DROP TABLE IF EXISTS node_approvals CASCADE; DROP TABLE IF EXISTS node_capabilities CASCADE; ALTER TABLE nodes DROP COLUMN IF EXISTS last_active_at;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

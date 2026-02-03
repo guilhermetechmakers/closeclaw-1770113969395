@@ -36,6 +36,9 @@ export interface Database {
       cron_jobs: { Row: CronJob; Insert: CronJobInsert; Update: CronJobUpdate };
       cron_run_history: { Row: CronRunHistory; Insert: CronRunHistoryInsert };
       nodes: { Row: Node; Insert: NodeInsert; Update: NodeUpdate };
+      node_capabilities: { Row: NodeCapability; Insert: NodeCapabilityInsert; Update: NodeCapabilityUpdate };
+      node_approvals: { Row: NodeApproval; Insert: NodeApprovalInsert; Update: NodeApprovalUpdate };
+      pairing_requests: { Row: PairingRequest; Insert: PairingRequestInsert };
       alerts: { Row: Alert; Insert: AlertInsert; Update: AlertUpdate };
       chat_sessions: { Row: ChatSession; Insert: ChatSessionInsert; Update: ChatSessionUpdate };
       chat_messages: { Row: ChatMessage; Insert: ChatMessageInsert; Update: ChatMessageUpdate };
@@ -938,6 +941,7 @@ export interface Node {
   status: NodeStatus;
   capabilities: string[];
   connection_health: ConnectionHealth;
+  last_active_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -949,6 +953,7 @@ export interface NodeInsert {
   status?: NodeStatus;
   capabilities?: string[];
   connection_health?: ConnectionHealth;
+  last_active_at?: string | null;
 }
 
 export interface NodeUpdate {
@@ -956,6 +961,89 @@ export interface NodeUpdate {
   status?: NodeStatus;
   capabilities?: string[];
   connection_health?: ConnectionHealth;
+  last_active_at?: string | null;
+}
+
+// ========== Node Capabilities (per-node capability definitions) ==========
+
+export type NodeCapabilityStatus = 'enabled' | 'disabled' | 'pending_approval';
+
+export interface NodeCapability {
+  id: string;
+  node_id: string;
+  capability_key: string;
+  status: NodeCapabilityStatus;
+  description: string | null;
+  configurations: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NodeCapabilityInsert {
+  id?: string;
+  node_id: string;
+  capability_key: string;
+  status?: NodeCapabilityStatus;
+  description?: string | null;
+  configurations?: Record<string, unknown>;
+}
+
+export interface NodeCapabilityUpdate {
+  status?: NodeCapabilityStatus;
+  description?: string | null;
+  configurations?: Record<string, unknown>;
+}
+
+// ========== Node Approvals (approval workflow for remote exec / capability changes) ==========
+
+export type NodeApprovalStatus = 'pending' | 'approved' | 'denied';
+
+export interface NodeApproval {
+  id: string;
+  requester_id: string;
+  node_id: string;
+  capability_id: string | null;
+  action_type: string;
+  status: NodeApprovalStatus;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NodeApprovalInsert {
+  id?: string;
+  requester_id: string;
+  node_id: string;
+  capability_id?: string | null;
+  action_type: string;
+  status?: NodeApprovalStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export interface NodeApprovalUpdate {
+  status?: NodeApprovalStatus;
+  metadata?: Record<string, unknown>;
+}
+
+// ========== Pairing Requests (temporary pairing codes for QR/code flow) ==========
+
+export interface PairingRequest {
+  id: string;
+  user_id: string;
+  pairing_code: string;
+  expires_at: string;
+  node_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface PairingRequestInsert {
+  id?: string;
+  user_id: string;
+  pairing_code: string;
+  expires_at: string;
+  node_id?: string | null;
+  metadata?: Record<string, unknown>;
 }
 
 export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
