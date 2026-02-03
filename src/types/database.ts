@@ -43,6 +43,7 @@ export interface Database {
       chat_sessions: { Row: ChatSession; Insert: ChatSessionInsert; Update: ChatSessionUpdate };
       chat_messages: { Row: ChatMessage; Insert: ChatMessageInsert; Update: ChatMessageUpdate };
       tool_invocations: { Row: ToolInvocation; Insert: ToolInvocationInsert; Update: ToolInvocationUpdate };
+      session_commands: { Row: SessionCommand; Insert: SessionCommandInsert; Update: never };
       channels: { Row: Channel; Insert: ChannelInsert; Update: ChannelUpdate };
       adapter_configurations: { Row: AdapterConfiguration; Insert: AdapterConfigurationInsert; Update: AdapterConfigurationUpdate };
       delivery_logs: { Row: DeliveryLog; Insert: DeliveryLogInsert };
@@ -1043,6 +1044,7 @@ export interface ChannelAdapterMessageInsert {
 // ========== Chat (chat_sessions, chat_messages, tool_invocations) ==========
 
 export type ChatSessionStatus = 'active' | 'paused' | 'ended';
+export type SessionRoutingType = 'shared' | 'isolate';
 
 export interface ChatSession {
   id: string;
@@ -1053,6 +1055,8 @@ export interface ChatSession {
   started_at: string;
   created_at: string;
   updated_at: string;
+  routing_type?: SessionRoutingType;
+  peer_id?: string | null;
 }
 
 export interface ChatSessionInsert {
@@ -1062,12 +1066,16 @@ export interface ChatSessionInsert {
   status?: ChatSessionStatus;
   settings?: Record<string, unknown>;
   started_at?: string;
+  routing_type?: SessionRoutingType;
+  peer_id?: string | null;
 }
 
 export interface ChatSessionUpdate {
   title?: string;
   status?: ChatSessionStatus;
   settings?: Record<string, unknown>;
+  routing_type?: SessionRoutingType;
+  peer_id?: string | null;
 }
 
 export type ChatMessageRole = 'user' | 'assistant' | 'system';
@@ -1081,6 +1089,8 @@ export interface ChatMessage {
   attachment_links: { url: string; name?: string }[];
   metadata: Record<string, unknown>;
   created_at: string;
+  channel?: string | null;
+  is_redacted?: boolean;
 }
 
 export interface ChatMessageInsert {
@@ -1091,11 +1101,36 @@ export interface ChatMessageInsert {
   text: string;
   attachment_links?: { url: string; name?: string }[];
   metadata?: Record<string, unknown>;
+  channel?: string | null;
+  is_redacted?: boolean;
 }
 
 export interface ChatMessageUpdate {
   text?: string;
   attachment_links?: { url: string; name?: string }[];
+  metadata?: Record<string, unknown>;
+  channel?: string | null;
+  is_redacted?: boolean;
+}
+
+// ========== Session Commands (slash commands with permissions) ==========
+
+export interface SessionCommand {
+  id: string;
+  user_id: string;
+  session_id: string | null;
+  command_type: string;
+  permissions: unknown[];
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface SessionCommandInsert {
+  id?: string;
+  user_id: string;
+  session_id?: string | null;
+  command_type: string;
+  permissions?: unknown[];
   metadata?: Record<string, unknown>;
 }
 

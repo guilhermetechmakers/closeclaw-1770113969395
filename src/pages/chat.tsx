@@ -2,28 +2,35 @@ import { useState, useCallback, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, RotateCcw, Square } from 'lucide-react';
+import { Plus, RotateCcw, Square, Activity, Wifi } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import {
   useChatSessions,
   useChatSession,
   useChatMessages,
   useToolInvocations,
+  useSessionCommands,
   useCreateChatSession,
   useUpdateChatSession,
   useSendMessage,
+  useCreateSessionCommand,
   useApproveToolInvocation,
   useDenyToolInvocation,
 } from '@/hooks/useChat';
 import { MessageThread } from '@/components/chat/message-thread';
-import { Composer } from '@/components/chat/composer';
+import { ComposerWithSlash } from '@/components/chat/composer-with-slash';
+import type { SlashCommandId } from '@/components/chat/composer-with-slash';
 import { ToolInvocationCard } from '@/components/chat/tool-invocation-card';
 import { ChatSidebar } from '@/components/chat/chat-sidebar';
 import { RunTracePanel } from '@/components/chat/run-trace-panel';
 import { AttachmentModal } from '@/components/chat/attachment-modal';
 import { SessionManagementDialog } from '@/components/chat/session-management-dialog';
+import { SessionConfigurationModal } from '@/components/chat/session-configuration-modal';
+import { PermissionRequestDialog } from '@/components/chat/permission-request-dialog';
 import type { SessionAction } from '@/components/chat/session-management-dialog';
 import type { TraceEntry } from '@/components/chat/run-trace-panel';
+import type { SessionRoutingType } from '@/types/database';
+import { cn } from '@/lib/utils';
 
 const AVAILABLE_TOOLS = [
   { id: 'browser', name: 'Browser', description: 'Fetch and summarize URLs' },
@@ -38,9 +45,14 @@ export function Chat() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [sessionAction, setSessionAction] = useState<SessionAction | null>(null);
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
+  const [sessionConfigOpen, setSessionConfigOpen] = useState(false);
+  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
+  const [permissionCommand, setPermissionCommand] = useState<string | null>(null);
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name?: string }[]>([]);
   const [traceEntries, setTraceEntries] = useState<TraceEntry[]>([]);
+  const [streamingActive] = useState(false);
+  const [backpressureStatus] = useState<'normal' | 'high'>('normal');
 
   const { data: sessions = [], isLoading: sessionsLoading } = useChatSessions();
   const { data: session } = useChatSession(selectedSessionId);
@@ -49,10 +61,15 @@ export function Chat() {
     200
   );
   const { data: toolInvocations = [] } = useToolInvocations(selectedSessionId, { limit: 20 });
+  const { data: commandHistory = [] } = useSessionCommands({
+    sessionId: selectedSessionId,
+    limit: 20,
+  });
 
   const createSessionMutation = useCreateChatSession();
   const updateSessionMutation = useUpdateChatSession();
   const sendMessageMutation = useSendMessage();
+  const createSessionCommandMutation = useCreateSessionCommand();
   const approveToolMutation = useApproveToolInvocation();
   const denyToolMutation = useDenyToolInvocation();
 
@@ -97,6 +114,12 @@ export function Chat() {
 
   const handleSessionAction = useCallback(
     (action: SessionAction) => {
+      const logCommand = (sessionId: string) => {
+        createSessionCommandMutation.mutate({
+          session_id: sessionId,
+          command_type: action,
+        });
+      };
       if (action === 'new') {
         createSessionMutation.mutate(
           { title: `Session ${new Date().toLocaleTimeString()}` },
@@ -105,6 +128,7 @@ export function Chat() {
               setSelectedSessionId(newSession.id);
               setSessionDialogOpen(false);
               setSessionAction(null);
+              logCommand(newSession.id);
             },
           }
         );
@@ -116,6 +140,7 @@ export function Chat() {
               setSelectedSessionId(newSession.id);
               setSessionDialogOpen(false);
               setSessionAction(null);
+              logCommand(newSession.id);
             },
           }
         );
@@ -126,6 +151,7 @@ export function Chat() {
             onSuccess: () => {
               setSessionDialogOpen(false);
               setSessionAction(null);
+              logCommand(selectedSessionId);
             },
           }
         );
@@ -135,6 +161,7 @@ export function Chat() {
       selectedSessionId,
       createSessionMutation,
       updateSessionMutation,
+      createSessionCommandMutation,
     ]
   );
 
@@ -154,15 +181,54 @@ export function Chat() {
     [selectedSessionId, denyToolMutation]
   );
 
-  const openSessionDialog = (action: SessionAction) => {
+  const openSessionDialog = useCallback((action: SessionAction) => {
     setSessionAction(action);
     setSessionDialogOpen(true);
-  };
+  }, []);
+
+  const handleSlashCommand = useCallback(
+    (command: SlashCommandId) => {
+      openSessionDialog(command as SessionAction);
+    },
+    [openSessionDialog]
+  );
+
+  const handleSaveSessionConfig = useCallback(
+    (routingType: SessionRoutingType, peerId: string | null) => {
+      if (!selectedSessionId) return;
+      updateSessionMutation.mutate({
+        id: selectedSessionId,
+        data: { routing_type: routingType, peer_id: peerId },
+      });
+    },
+    [selectedSessionId, updateSessionMutation]
+  );
+
+  const handlePermissionConfirm = useCallback(() => {
+    if (permissionCommand) openSessionDialog(permissionCommand as SessionAction);
+    setPermissionCommand(null);
+  }, [permissionCommand]);
+
+  const handlePermissionDeny = useCallback(() => {
+    setPermissionCommand(null);
+  }, []);
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col gap-4 animate-fade-in-up">
-      <header className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-foreground">Chat Session</h1>
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-semibold text-foreground">Chat Session</h1>
+          {session && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Session: {session.title}</span>
+              {(session.routing_type === 'shared' || session.routing_type === 'isolate') && (
+                <span className="rounded bg-secondary px-1.5 py-0.5 text-xs">
+                  {session.routing_type}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -205,9 +271,10 @@ export function Chat() {
               currentUserId={currentUserId}
               className="min-h-0"
             />
-            <Composer
+            <ComposerWithSlash
               sessionId={selectedSessionId}
               onSend={handleSendMessage}
+              onSlashCommand={handleSlashCommand}
               onAttachClick={() => setAttachmentModalOpen(true)}
               disabled={!selectedSessionId}
               isSending={sendMessageMutation.isPending}
@@ -238,6 +305,8 @@ export function Chat() {
             onSelectSession={setSelectedSessionId}
             currentSessionId={selectedSessionId}
             routingTargets={[]}
+            commandHistory={commandHistory}
+            onOpenSessionConfig={() => setSessionConfigOpen(true)}
           />
           <RunTracePanel
             traces={traceEntries}
@@ -245,6 +314,19 @@ export function Chat() {
           />
         </div>
       </div>
+
+      <footer className="flex items-center justify-between gap-2 border-t border-border px-4 py-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <Activity className={cn('h-3.5 w-3.5', streamingActive && 'text-accent')} />
+            {streamingActive ? 'Streaming' : 'Idle'}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Wifi className="h-3.5 w-3.5" />
+            Backpressure: {backpressureStatus}
+          </span>
+        </div>
+      </footer>
 
       <AttachmentModal
         open={attachmentModalOpen}
@@ -268,6 +350,25 @@ export function Chat() {
         isLoading={
           createSessionMutation.isPending || updateSessionMutation.isPending
         }
+      />
+
+      <SessionConfigurationModal
+        open={sessionConfigOpen}
+        onOpenChange={setSessionConfigOpen}
+        session={session ?? null}
+        routingType={session?.routing_type ?? 'shared'}
+        peerId={session?.peer_id ?? null}
+        onSave={handleSaveSessionConfig}
+        isLoading={updateSessionMutation.isPending}
+        peerOptions={[]}
+      />
+
+      <PermissionRequestDialog
+        open={permissionDialogOpen}
+        onOpenChange={setPermissionDialogOpen}
+        command={permissionCommand ?? ''}
+        onConfirm={handlePermissionConfirm}
+        onDeny={handlePermissionDeny}
       />
     </div>
   );

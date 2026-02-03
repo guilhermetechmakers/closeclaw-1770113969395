@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203600000_messaging_session_management",
+  "created_at": "2025-02-03T00:00:00Z",
+  "description": "Add messaging/session management: message channel and redaction, session routing (shared/isolate), session_commands table for slash commands",
+  "tables_created": ["session_commands"],
+  "tables_modified": ["chat_messages", "chat_sessions"],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS session_commands CASCADE; ALTER TABLE chat_sessions DROP COLUMN IF EXISTS routing_type, DROP COLUMN IF EXISTS peer_id; ALTER TABLE chat_messages DROP COLUMN IF EXISTS channel, DROP COLUMN IF EXISTS is_redacted;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

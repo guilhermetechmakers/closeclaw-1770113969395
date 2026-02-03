@@ -7,6 +7,7 @@ import type {
   ChatMessageInsert,
   ToolInvocationInsert,
   ToolInvocationUpdate,
+  SessionCommandInsert,
 } from '@/types/database';
 
 function safeGet<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
@@ -23,6 +24,8 @@ export const CHAT_KEYS = {
     sessionId: string,
     params?: { messageId?: string; limit?: number }
   ) => [...CHAT_KEYS.all, 'toolInvocations', sessionId, params] as const,
+  sessionCommands: (params?: { sessionId?: string; limit?: number }) =>
+    [...CHAT_KEYS.all, 'sessionCommands', params] as const,
 };
 
 export function useChatSessions() {
@@ -195,6 +198,41 @@ export function useDenyToolInvocation() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to deny');
+    },
+  });
+}
+
+export function useSessionCommands(params?: {
+  sessionId?: string | null;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: CHAT_KEYS.sessionCommands({
+      sessionId: params?.sessionId ?? undefined,
+      limit: params?.limit,
+    }),
+    queryFn: () =>
+      chatApi.getSessionCommands({
+        sessionId: params?.sessionId ?? undefined,
+        limit: params?.limit ?? 50,
+      }),
+  });
+}
+
+export function useCreateSessionCommand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Omit<SessionCommandInsert, 'user_id'>) =>
+      chatApi.createSessionCommand(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: CHAT_KEYS.sessionCommands({
+          sessionId: variables.session_id ?? undefined,
+        }),
+      });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to execute command');
     },
   });
 }

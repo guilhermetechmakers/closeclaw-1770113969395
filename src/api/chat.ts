@@ -8,6 +8,8 @@ import type {
   ToolInvocation,
   ToolInvocationInsert,
   ToolInvocationUpdate,
+  SessionCommand,
+  SessionCommandInsert,
 } from '@/types/database';
 
 export const chatApi = {
@@ -141,4 +143,40 @@ export const chatApi = {
 
   denyToolInvocation: async (id: string): Promise<ToolInvocation> =>
     chatApi.updateToolInvocation(id, { status: 'denied' }),
+
+  // Session commands (slash commands with permissions)
+  getSessionCommands: async (params?: {
+    userId?: string;
+    sessionId?: string;
+    limit?: number;
+  }): Promise<SessionCommand[]> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const uid = params?.userId ?? user?.id;
+    if (!uid) return [];
+    let query = supabase
+      .from('session_commands')
+      .select('*')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false });
+    if (params?.sessionId) query = query.eq('session_id', params.sessionId);
+    if (params?.limit) query = query.limit(params.limit);
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []) as SessionCommand[];
+  },
+
+  createSessionCommand: async (
+    payload: Omit<SessionCommandInsert, 'user_id'>
+  ): Promise<SessionCommand> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const row: SessionCommandInsert = { ...payload, user_id: user.id };
+    const { data, error } = await supabase
+      .from('session_commands')
+      .insert(row as never)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as SessionCommand;
+  },
 };

@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Radio } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, Radio, Settings2, Terminal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatSession } from '@/types/database';
+import type { SessionCommand } from '@/types/database';
 
 export interface ChatSidebarProps {
   session: ChatSession | null;
@@ -11,6 +13,8 @@ export interface ChatSidebarProps {
   onSelectSession: (id: string) => void;
   currentSessionId: string | null;
   routingTargets?: { id: string; name: string; type: string }[];
+  commandHistory?: SessionCommand[];
+  onOpenSessionConfig?: () => void;
   className?: string;
 }
 
@@ -20,6 +24,8 @@ export function ChatSidebar({
   onSelectSession,
   currentSessionId,
   routingTargets = [],
+  commandHistory = [],
+  onOpenSessionConfig,
   className,
 }: ChatSidebarProps) {
   return (
@@ -41,9 +47,27 @@ export function ChatSidebar({
             <p>Main session (default)</p>
           )}
           {session && (
-            <p className="mt-1 text-xs">
-              Status: <Badge variant="outline">{session.status}</Badge>
-            </p>
+            <>
+              <p className="mt-1 text-xs">
+                Status: <Badge variant="outline">{session.status}</Badge>
+              </p>
+              {(session.routing_type === 'shared' || session.routing_type === 'isolate') && (
+                <p className="mt-1 text-xs">
+                  Routing: <Badge variant="secondary">{session.routing_type}</Badge>
+                </p>
+              )}
+              {onOpenSessionConfig && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2 gap-1.5 text-xs"
+                  onClick={onOpenSessionConfig}
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Configure routing
+                </Button>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -101,6 +125,29 @@ export function ChatSidebar({
           )}
         </CardContent>
       </Card>
+
+      {commandHistory.length > 0 && (
+        <Card className="rounded-lg border border-border bg-card shadow-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <Terminal className="h-4 w-4" />
+              Command history
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-24">
+              <ul className="space-y-1 text-xs text-muted-foreground">
+                {commandHistory.slice(0, 10).map((c) => (
+                  <li key={c.id} className="flex items-center gap-2">
+                    <code className="rounded bg-secondary px-1.5 py-0.5">/{c.command_type}</code>
+                    <span>{new Date(c.created_at).toLocaleTimeString()}</span>
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
     </aside>
   );
 }
