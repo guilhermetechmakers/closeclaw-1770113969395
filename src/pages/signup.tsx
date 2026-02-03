@@ -1,11 +1,13 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { signUp } from '@/api/auth';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email'),
@@ -19,6 +21,7 @@ const signupSchema = z.object({
 type SignupForm = z.infer<typeof signupSchema>;
 
 export function Signup() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -28,7 +31,20 @@ export function Signup() {
   });
 
   const onSubmit = async (data: SignupForm) => {
-    console.log(data);
+    const result = await signUp(data.email, data.password, { redirectTo: '/verify-email' });
+    if (result.success) {
+      if (result.needsEmailVerification) {
+        toast.success('Check your email', {
+          description: 'We sent a verification link. Click it or enter the code on the next page.',
+        });
+        navigate('/verify-email', { replace: true });
+      } else {
+        toast.success('Account created', { description: 'You can sign in now.' });
+        navigate('/dashboard', { replace: true });
+      }
+    } else {
+      toast.error('Sign up failed', { description: result.error });
+    }
   };
 
   return (
