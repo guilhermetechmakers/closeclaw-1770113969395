@@ -52,8 +52,92 @@ export interface Database {
       transcription_backends: { Row: TranscriptionBackend; Insert: TranscriptionBackendInsert; Update: TranscriptionBackendUpdate };
       tts_provider_settings: { Row: TtsProviderSetting; Insert: TtsProviderSettingInsert; Update: TtsProviderSettingUpdate };
       media_settings: { Row: MediaSetting; Insert: MediaSettingInsert; Update: MediaSettingUpdate };
+      skills: { Row: Skill; Insert: SkillInsert; Update: SkillUpdate };
+      skill_test_runs: { Row: SkillTestRun; Insert: SkillTestRunInsert; Update: SkillTestRunUpdate };
+      skill_versions: { Row: SkillVersion; Insert: SkillVersionInsert };
     };
   };
+}
+
+// ========== Skill Editor (skills, skill_test_runs, skill_versions) ==========
+
+export type SkillStatus = 'draft' | 'published' | 'archived';
+
+export interface Skill {
+  id: string;
+  user_id: string;
+  name: string;
+  content: string;
+  version: string;
+  frontmatter: Record<string, unknown>;
+  status: SkillStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SkillInsert {
+  id?: string;
+  user_id: string;
+  name: string;
+  content?: string;
+  version?: string;
+  frontmatter?: Record<string, unknown>;
+  status?: SkillStatus;
+}
+
+export interface SkillUpdate {
+  name?: string;
+  content?: string;
+  version?: string;
+  frontmatter?: Record<string, unknown>;
+  status?: SkillStatus;
+}
+
+export type SkillTestRunStatus = 'running' | 'completed' | 'failed' | 'aborted';
+
+export interface SkillTestRun {
+  id: string;
+  skill_id: string;
+  user_id: string;
+  status: SkillTestRunStatus;
+  logs: string | null;
+  outputs: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SkillTestRunInsert {
+  id?: string;
+  skill_id: string;
+  user_id: string;
+  status?: SkillTestRunStatus;
+  logs?: string | null;
+  outputs?: Record<string, unknown>;
+}
+
+export interface SkillTestRunUpdate {
+  status?: SkillTestRunStatus;
+  logs?: string | null;
+  outputs?: Record<string, unknown>;
+}
+
+export interface SkillVersion {
+  id: string;
+  skill_id: string;
+  user_id: string;
+  version_number: string;
+  changes: string | null;
+  content_snapshot: string | null;
+  created_at: string;
+}
+
+export interface SkillVersionInsert {
+  id?: string;
+  skill_id: string;
+  user_id: string;
+  version_number: string;
+  changes?: string | null;
+  content_snapshot?: string | null;
 }
 
 // ========== Voice & Media ==========

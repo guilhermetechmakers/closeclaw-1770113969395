@@ -61,7 +61,7 @@ export default function App() {
             <Route path="/chat" element={<Chat />} />
             <Route path="/channels" element={<Channels />} />
             <Route path="/skills" element={<Skills />} />
-            <Route path="/skill-editor" element={<SkillEditor />} />
+            <Route path="/skill-editor/:skillId?" element={<SkillEditor />} />
             <Route path="/nodes" element={<Nodes />} />
             <Route path="/cron" element={<Cron />} />
             <Route path="/webhooks" element={<Webhooks />} />
