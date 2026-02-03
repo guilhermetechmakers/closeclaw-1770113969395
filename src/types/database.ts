@@ -39,8 +39,103 @@ export interface Database {
       chat_sessions: { Row: ChatSession; Insert: ChatSessionInsert; Update: ChatSessionUpdate };
       chat_messages: { Row: ChatMessage; Insert: ChatMessageInsert; Update: ChatMessageUpdate };
       tool_invocations: { Row: ToolInvocation; Insert: ToolInvocationInsert; Update: ToolInvocationUpdate };
+      channels: { Row: Channel; Insert: ChannelInsert; Update: ChannelUpdate };
+      adapter_configurations: { Row: AdapterConfiguration; Insert: AdapterConfigurationInsert; Update: AdapterConfigurationUpdate };
+      delivery_logs: { Row: DeliveryLog; Insert: DeliveryLogInsert };
     };
   };
+}
+
+// ========== Channels & Adapters ==========
+
+export type ChannelProvider = 'whatsapp' | 'telegram' | 'slack' | 'discord';
+export type ChannelStatus = 'active' | 'inactive' | 'error' | 'provisioning';
+
+export interface Channel {
+  id: string;
+  user_id: string;
+  provider: ChannelProvider;
+  display_name: string | null;
+  status: ChannelStatus;
+  last_event_at: string | null;
+  success_rate: number;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChannelInsert {
+  id?: string;
+  user_id: string;
+  provider: ChannelProvider;
+  display_name?: string | null;
+  status?: ChannelStatus;
+  last_event_at?: string | null;
+  success_rate?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ChannelUpdate {
+  display_name?: string | null;
+  status?: ChannelStatus;
+  last_event_at?: string | null;
+  success_rate?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export type DmPolicy = 'pairing' | 'allowlist' | 'open' | 'disabled';
+export type GroupPolicy = 'mention' | 'open' | 'disabled';
+
+export interface AdapterConfiguration {
+  id: string;
+  channel_id: string;
+  dm_policy: DmPolicy;
+  group_policy: GroupPolicy;
+  mention_gating: boolean;
+  webhook_url: string | null;
+  polling_interval_seconds: number | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdapterConfigurationInsert {
+  id?: string;
+  channel_id: string;
+  dm_policy?: DmPolicy;
+  group_policy?: GroupPolicy;
+  mention_gating?: boolean;
+  webhook_url?: string | null;
+  polling_interval_seconds?: number | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AdapterConfigurationUpdate {
+  dm_policy?: DmPolicy;
+  group_policy?: GroupPolicy;
+  mention_gating?: boolean;
+  webhook_url?: string | null;
+  polling_interval_seconds?: number | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface DeliveryLog {
+  id: string;
+  channel_id: string;
+  event_type: string;
+  success: boolean;
+  error_details: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface DeliveryLogInsert {
+  id?: string;
+  channel_id: string;
+  event_type: string;
+  success?: boolean;
+  error_details?: string | null;
+  metadata?: Record<string, unknown>;
 }
 
 // ========== Chat (chat_sessions, chat_messages, tool_invocations) ==========

@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203220000_create_channels_tables",
+  "created_at": "2025-02-03T22:00:00Z",
+  "description": "Channels, adapter_configurations, and delivery_logs for Channels & Adapters page",
+  "tables_created": ["channels", "adapter_configurations", "delivery_logs"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS delivery_logs CASCADE; DROP TABLE IF EXISTS adapter_configurations CASCADE; DROP TABLE IF EXISTS channels CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}
