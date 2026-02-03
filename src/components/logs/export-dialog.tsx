@@ -47,6 +47,8 @@ export interface LogExportDialogProps {
   onOpenChange: (open: boolean) => void;
   onExport: (params: ExportLogsParams) => void;
   isExporting?: boolean;
+  /** When provided, export is limited to these log IDs (selection confirmation). */
+  selectedLogIds?: string[];
 }
 
 export function LogExportDialog({
@@ -54,6 +56,7 @@ export function LogExportDialog({
   onOpenChange,
   onExport,
   isExporting = false,
+  selectedLogIds,
 }: LogExportDialogProps) {
   const [format, setFormat] = useState<'json' | 'csv'>('json');
   const {
@@ -82,10 +85,16 @@ export function LogExportDialog({
       from: data.from || undefined,
       to: data.to || undefined,
       severity: data.severity as LogSeverity | undefined,
+      ...(selectedLogIds?.length ? { logIds: selectedLogIds } : {}),
     };
     onExport(params);
     onOpenChange(false);
   };
+
+  const selectionLabel =
+    selectedLogIds?.length ?
+      `Export ${selectedLogIds.length} selected log${selectedLogIds.length === 1 ? '' : 's'}`
+    : 'Export logs with your chosen format and redaction options.';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,7 +102,7 @@ export function LogExportDialog({
         <DialogHeader>
           <DialogTitle>Export logs</DialogTitle>
           <DialogDescription id="export-desc">
-            Choose format, date range, and redaction. Export will download with your settings.
+            {selectionLabel}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

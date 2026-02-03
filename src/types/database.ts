@@ -70,6 +70,11 @@ export interface Database {
         Insert: LogRetentionSettingInsert;
         Update: LogRetentionSettingUpdate;
       };
+      redaction_rules: {
+        Row: RedactionRule;
+        Insert: RedactionRuleInsert;
+        Update: RedactionRuleUpdate;
+      };
       privacy_policy_settings: {
         Row: PrivacyPolicySetting;
         Insert: PrivacyPolicySettingInsert;
@@ -400,6 +405,29 @@ export interface LogRetentionSettingInsert {
 export interface LogRetentionSettingUpdate {
   retention_period_days?: number;
   purge_enabled?: boolean;
+}
+
+// ========== Redaction Rules (Logs & Tracing) ==========
+
+export interface RedactionRule {
+  id: string;
+  user_id: string;
+  field_name: string;
+  is_redacted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RedactionRuleInsert {
+  id?: string;
+  user_id: string;
+  field_name: string;
+  is_redacted?: boolean;
+}
+
+export interface RedactionRuleUpdate {
+  field_name?: string;
+  is_redacted?: boolean;
 }
 
 // ========== Webhooks & Hooks ==========

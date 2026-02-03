@@ -8,6 +8,9 @@ import type {
   LogRetentionSetting,
   LogRetentionSettingInsert,
   LogRetentionSettingUpdate,
+  RedactionRule,
+  RedactionRuleInsert,
+  RedactionRuleUpdate,
   LogSeverity,
 } from '@/types/database';
 
@@ -72,4 +75,16 @@ export const logsApi = {
 
   createRetentionSettings: (data: LogRetentionSettingInsert) =>
     api.post<LogRetentionSetting>(`${LOGS_BASE}/retention`, data),
+
+  getRedactionRules: () =>
+    api.get<RedactionRule[]>(`${LOGS_BASE}/redaction-rules`),
+
+  createRedactionRule: (data: Omit<RedactionRuleInsert, 'user_id'> & { user_id?: string }) =>
+    api.post<RedactionRule>(`${LOGS_BASE}/redaction-rules`, data),
+
+  updateRedactionRule: (id: string, data: RedactionRuleUpdate) =>
+    api.patch<RedactionRule>(`${LOGS_BASE}/redaction-rules/${id}`, data),
+
+  deleteRedactionRule: (id: string) =>
+    api.delete(`${LOGS_BASE}/redaction-rules/${id}`),
 };

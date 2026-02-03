@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203450000_redaction_rules",
+  "created_at": "2025-02-03T45:00:00.000Z",
+  "description": "Redaction rules table for log/trace field redaction (privacy compliance)",
+  "tables_created": ["redaction_rules"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS redaction_rules CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

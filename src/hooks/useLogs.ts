@@ -7,6 +7,8 @@ import type {
   RunTraceUpdate,
   LogRetentionSettingInsert,
   LogRetentionSettingUpdate,
+  RedactionRuleInsert,
+  RedactionRuleUpdate,
 } from '@/types/database';
 
 function safeGet<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
@@ -23,6 +25,7 @@ export const LOGS_KEYS = {
   trace: (traceId: string) =>
     [...LOGS_KEYS.all, 'trace-id', traceId] as const,
   retention: () => [...LOGS_KEYS.all, 'retention'] as const,
+  redactionRules: () => [...LOGS_KEYS.all, 'redaction-rules'] as const,
 };
 
 export function useLogs(params?: LogsFilterParams) {
@@ -157,6 +160,57 @@ export function useCreateRetentionSettings() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to save retention settings');
+    },
+  });
+}
+
+export function useRedactionRules() {
+  return useQuery({
+    queryKey: LOGS_KEYS.redactionRules(),
+    queryFn: () => safeGet(() => logsApi.getRedactionRules(), []),
+  });
+}
+
+export function useCreateRedactionRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Omit<RedactionRuleInsert, 'user_id'> & { user_id?: string }) =>
+      logsApi.createRedactionRule(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LOGS_KEYS.redactionRules() });
+      toast.success('Redaction rule added');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to add redaction rule');
+    },
+  });
+}
+
+export function useUpdateRedactionRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: RedactionRuleUpdate }) =>
+      logsApi.updateRedactionRule(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LOGS_KEYS.redactionRules() });
+      toast.success('Redaction rule updated');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update redaction rule');
+    },
+  });
+}
+
+export function useDeleteRedactionRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => logsApi.deleteRedactionRule(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LOGS_KEYS.redactionRules() });
+      toast.success('Redaction rule removed');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to remove redaction rule');
     },
   });
 }
