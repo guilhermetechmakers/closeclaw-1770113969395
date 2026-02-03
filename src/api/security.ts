@@ -4,8 +4,11 @@ import type {
   SecurityAuditInsert,
   SecurityIssue,
   SecurityIssueInsert,
+  SecurityIssueUpdate,
   IncidentAction,
   IncidentActionInsert,
+  AuditLog,
+  AuditLogInsert,
 } from '@/types/database';
 
 const SECURITY_BASE = '/security';
@@ -64,6 +67,10 @@ export const securityApi = {
       {}
     ),
 
+  /** Update issue (e.g. manual remediation / applied_fix) */
+  updateIssue: (issueId: string, data: SecurityIssueUpdate) =>
+    api.patch<SecurityIssue>(`${SECURITY_BASE}/issues/${issueId}`, data),
+
   /** List incident actions for the user (optional audit filter) */
   getIncidentActions: (params?: { audit_id?: string; limit?: number }) => {
     const search =
@@ -89,4 +96,26 @@ export const securityApi = {
   /** Export audit logs for compliance/review */
   exportAuditLogs: (params: ExportAuditLogsParams) =>
     api.post<{ download_url?: string; blob?: string }>(`${SECURITY_BASE}/export`, params),
+
+  /** List audit logs for compliance (optional audit_id filter) */
+  getAuditLogs: (params?: { audit_id?: string; limit?: number; offset?: number }) => {
+    const search =
+      params && Object.keys(params).length > 0
+        ? new URLSearchParams(
+            (Object.entries(params) as [string, string | number | undefined][])
+              .filter(
+                ([, v]) =>
+                  v != null &&
+                  (typeof v !== 'string' || v !== '') &&
+                  (typeof v !== 'number' || v !== 0)
+              )
+              .map(([k, v]) => [k, String(v)])
+          ).toString()
+        : '';
+    return api.get<AuditLog[]>(`${SECURITY_BASE}/audit-logs${search ? `?${search}` : ''}`);
+  },
+
+  /** Create audit log entry (e.g. when backend records actions) */
+  createAuditLog: (data: AuditLogInsert) =>
+    api.post<AuditLog>(`${SECURITY_BASE}/audit-logs`, data),
 };

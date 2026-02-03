@@ -194,13 +194,23 @@ export interface SecurityAuditUpdate {
 
 export type SecurityIssueSeverity = 'critical' | 'high' | 'medium' | 'low';
 
+/** Category for findings: misconfigurations, risky_permissions, plaintext_secrets, open_binds */
+export type SecurityIssueCategory =
+  | 'misconfigurations'
+  | 'risky_permissions'
+  | 'plaintext_secrets'
+  | 'open_binds'
+  | string;
+
 export interface SecurityIssue {
   id: string;
   audit_id: string;
+  category?: string | null;
   description: string;
   severity: SecurityIssueSeverity;
   affected_files: string[];
   remediation: string | null;
+  applied_fix?: string | null;
   auto_fix_available: boolean;
   metadata: Record<string, unknown>;
   created_at: string;
@@ -210,10 +220,12 @@ export interface SecurityIssue {
 export interface SecurityIssueInsert {
   id?: string;
   audit_id: string;
+  category?: string | null;
   description: string;
   severity: SecurityIssueSeverity;
   affected_files?: string[];
   remediation?: string | null;
+  applied_fix?: string | null;
   auto_fix_available?: boolean;
   metadata?: Record<string, unknown>;
 }
@@ -221,8 +233,10 @@ export interface SecurityIssueInsert {
 export interface SecurityIssueUpdate {
   description?: string;
   severity?: SecurityIssueSeverity;
+  category?: string | null;
   affected_files?: string[];
   remediation?: string | null;
+  applied_fix?: string | null;
   auto_fix_available?: boolean;
   metadata?: Record<string, unknown>;
 }
@@ -258,6 +272,25 @@ export interface IncidentActionInsert {
 
 export interface IncidentActionUpdate {
   status?: IncidentActionStatus;
+  metadata?: Record<string, unknown>;
+}
+
+// ========== Audit Logs (compliance) ==========
+
+export interface AuditLog {
+  id: string;
+  audit_id: string | null;
+  user_id: string;
+  action: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AuditLogInsert {
+  id?: string;
+  audit_id?: string | null;
+  user_id: string;
+  action: string;
   metadata?: Record<string, unknown>;
 }
 

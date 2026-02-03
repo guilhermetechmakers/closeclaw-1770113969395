@@ -18,13 +18,15 @@ import {
   RefreshCw,
   Download,
   StopCircle,
+  History,
 } from 'lucide-react';
-import { useSecurityAudits, useSecurityIssues, useRunAudit, useCreateIncidentAction, useExportAuditLogs, useApplyAutoFix } from '@/hooks/useSecurity';
+import { useSecurityAudits, useSecurityIssues, useRunAudit, useCreateIncidentAction, useExportAuditLogs, useApplyAutoFix, useUpdateSecurityIssue } from '@/hooks/useSecurity';
 import type { SecurityIssue, SecurityIssueSeverity } from '@/types/database';
 import type { IncidentActionType } from '@/types/database';
 import { AuditReportModal } from '@/components/security/audit-report-modal';
 import { IncidentActionConfirmationDialog } from '@/components/security/incident-action-confirmation-dialog';
 import { SecurityExportDialog } from '@/components/security/security-export-dialog';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 const SEVERITY_CONFIG: Record<
@@ -154,6 +156,7 @@ export function Security() {
   const createIncidentAction = useCreateIncidentAction();
   const exportAuditLogs = useExportAuditLogs();
   const applyAutoFix = useApplyAutoFix();
+  const updateIssue = useUpdateSecurityIssue();
 
   const counts = {
     critical: issues.filter((i) => i.severity === 'critical').length,
@@ -211,43 +214,96 @@ export function Security() {
     });
   };
 
+  const handleApplyManualFix = (issueId: string, appliedFix: string) => {
+    updateIssue.mutate(
+      { issueId, data: { applied_fix: appliedFix } },
+      {
+        onSuccess: () => {
+          setAuditReportOpen(false);
+          setSelectedIssue(null);
+        },
+      }
+    );
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      {/* Header + breadcrumb */}
-      <header className="space-y-2">
-        <nav
-          className="flex items-center gap-2 text-sm text-muted-foreground"
-          aria-label="Breadcrumb"
-        >
-          <Link
-            to="/dashboard"
-            className="transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+    <div className="animate-fade-in-up flex flex-col lg:flex-row gap-6">
+      {/* Main content */}
+      <div className="flex-1 min-w-0 space-y-6">
+        {/* Header + breadcrumb + nav links */}
+        <header className="space-y-2">
+          <nav
+            className="flex items-center gap-2 text-sm text-muted-foreground"
+            aria-label="Breadcrumb"
           >
-            Dashboard
-          </Link>
-          <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
-          <span className="text-foreground font-medium">Security Audit</span>
-        </nav>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold flex items-center gap-2">
-              <Shield className="h-7 w-7 text-primary" aria-hidden />
-              Security Audit
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Run automated security checks and manage remediation. Review issues and use incident response actions when needed.
-            </p>
+            <Link
+              to="/dashboard"
+              className="transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            >
+              Dashboard
+            </Link>
+            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
+            <span className="text-foreground font-medium">Security Audit</span>
+          </nav>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold flex items-center gap-2">
+                <Shield className="h-7 w-7 text-primary" aria-hidden />
+                Security Audit
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Run automated security checks and manage remediation. Review issues and use incident response actions when needed.
+              </p>
+            </div>
+            <nav className="flex items-center gap-3 text-sm" aria-label="Quick links">
+              <Link
+                to="/dashboard"
+                className="text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                Home
+              </Link>
+              <Link
+                to="/settings"
+                className="text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                Settings
+              </Link>
+              <Link
+                to="/help"
+                className="text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                Help
+              </Link>
+            </nav>
           </div>
-          <Button
-            onClick={() => runAudit.mutate()}
-            disabled={runAudit.isPending}
-            className="shrink-0 transition-transform hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Play className="mr-2 h-4 w-4" />
-            {runAudit.isPending ? 'Running…' : 'Run audit'}
-          </Button>
-        </div>
-      </header>
+        </header>
+
+        {/* Audit initiation panel: Start Audit + progress */}
+        <Card className="transition-shadow duration-200 hover:shadow-card-hover">
+          <CardHeader>
+            <CardTitle>Run audit</CardTitle>
+            <CardDescription>
+              Start automated checks for plaintext secrets, open binds, risky permissions, and misconfigurations.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => runAudit.mutate()}
+              disabled={runAudit.isPending}
+              size="lg"
+              className="shrink-0 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              {runAudit.isPending ? 'Running…' : 'Start Audit'}
+            </Button>
+            {runAudit.isPending && (
+              <div className="space-y-2" role="status" aria-live="polite">
+                <p className="text-sm text-muted-foreground">Running security checks…</p>
+                <Progress value={50} className="h-2 animate-pulse" aria-label="Audit in progress" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
       {/* Audit summary card */}
       <Card className="transition-shadow duration-200 hover:shadow-card-hover">
@@ -272,7 +328,7 @@ export function Security() {
               <div>
                 <p className="font-medium text-foreground">No audit yet</p>
                 <p className="text-sm text-muted-foreground">
-                  Click &quot;Run audit&quot; to get your current risk score and issues.
+                  Click &quot;Start Audit&quot; to get your current risk score and issues.
                 </p>
               </div>
             </div>
@@ -395,6 +451,76 @@ export function Security() {
           </div>
         </CardContent>
       </Card>
+        </div>
+
+      {/* Sidebar: previous audits + export */}
+      <aside
+        className="w-full lg:w-72 shrink-0 space-y-4"
+        aria-label="Security audit sidebar"
+      >
+        <Card className="transition-shadow duration-200 hover:shadow-card-hover">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <History className="h-4 w-4" aria-hidden />
+              Previous audits
+            </CardTitle>
+            <CardDescription>
+              Quick links to recent audit runs.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {auditsLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : audits.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No audits yet.</p>
+            ) : (
+              <ul className="space-y-2" role="list">
+                {audits.slice(0, 5).map((audit) => (
+                  <li key={audit.id}>
+                    <div
+                      className={cn(
+                        'rounded-lg border px-3 py-2 transition-colors',
+                        latestAudit?.id === audit.id
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-card/50 hover:bg-secondary/50'
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">Risk {audit.risk_score}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTimestamp(audit.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="transition-shadow duration-200 hover:shadow-card-hover">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Export</CardTitle>
+            <CardDescription>
+              Export audit logs for compliance or incident response.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              className="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              onClick={() => setExportDialogOpen(true)}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export logs
+            </Button>
+          </CardContent>
+        </Card>
+      </aside>
 
       <AuditReportModal
         issue={selectedIssue}
@@ -404,6 +530,8 @@ export function Security() {
         onAutoFixChange={setIssueAutoFixEnabled}
         onApplyAutoFix={handleApplyAutoFix}
         isApplyingAutoFix={applyAutoFix.isPending}
+        onApplyManualFix={handleApplyManualFix}
+        isApplyingManualFix={updateIssue.isPending}
       />
       <IncidentActionConfirmationDialog
         actionType={pendingActionType}

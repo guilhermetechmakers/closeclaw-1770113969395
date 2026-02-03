@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203420000_security_issues_category_applied_fix",
+  "created_at": "2025-02-03T00:00:00Z",
+  "description": "Add category and applied_fix columns to security_issues",
+  "tables_created": [],
+  "tables_modified": ["security_issues"],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "ALTER TABLE security_issues DROP COLUMN IF EXISTS category; ALTER TABLE security_issues DROP COLUMN IF EXISTS applied_fix; DROP INDEX IF EXISTS security_issues_category_idx;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

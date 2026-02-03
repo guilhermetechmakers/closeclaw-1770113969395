@@ -5,7 +5,11 @@ import {
   type RunAuditResponse,
   type ExportAuditLogsParams,
 } from '@/api/security';
-import type { SecurityAuditInsert, IncidentActionInsert } from '@/types/database';
+import type {
+  SecurityAuditInsert,
+  IncidentActionInsert,
+  SecurityIssueUpdate,
+} from '@/types/database';
 
 function safeGet<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   return fn().catch(() => fallback);
@@ -20,6 +24,8 @@ export const SECURITY_KEYS = {
     [...SECURITY_KEYS.all, 'issues', auditId ?? ''] as const,
   incidentActions: (params?: { audit_id?: string; limit?: number }) =>
     [...SECURITY_KEYS.all, 'incident-actions', params] as const,
+  auditLogs: (params?: { audit_id?: string; limit?: number; offset?: number }) =>
+    [...SECURITY_KEYS.all, 'audit-logs', params] as const,
 };
 
 export function useSecurityAudits(params?: { limit?: number; offset?: number }) {
@@ -96,6 +102,32 @@ export function useApplyAutoFix() {
     onError: (err: Error) => {
       toast.error(err.message || 'Auto-fix failed');
     },
+  });
+}
+
+export function useUpdateSecurityIssue() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ issueId, data }: { issueId: string; data: SecurityIssueUpdate }) =>
+      securityApi.updateIssue(issueId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SECURITY_KEYS.all });
+      toast.success('Issue updated');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Update failed');
+    },
+  });
+}
+
+export function useAuditLogs(params?: {
+  audit_id?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  return useQuery({
+    queryKey: SECURITY_KEYS.auditLogs(params),
+    queryFn: () => safeGet(() => securityApi.getAuditLogs(params), []),
   });
 }
 
