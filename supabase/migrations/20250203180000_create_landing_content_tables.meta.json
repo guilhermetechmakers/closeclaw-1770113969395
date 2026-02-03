@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203180000_create_landing_content_tables",
+  "created_at": "2025-02-03T18:00:00Z",
+  "description": "Landing page content tables: features, integration logos, pricing plans. Public read.",
+  "tables_created": ["landing_features", "landing_integration_logos", "landing_pricing_plans"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS landing_pricing_plans CASCADE; DROP TABLE IF EXISTS landing_integration_logos CASCADE; DROP TABLE IF EXISTS landing_features CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

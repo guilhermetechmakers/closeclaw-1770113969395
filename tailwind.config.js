@@ -49,11 +49,6 @@ export default {
         card: '0 2px 8px rgba(0,0,0,0.15)',
         'card-hover': '0 4px 16px rgba(0,0,0,0.2)',
       },
-      animation: {
-        'fade-in': 'fadeIn 0.4s ease-out',
-        'fade-in-up': 'fadeInUp 0.4s ease-out',
-        'slide-in-left': 'slideInLeft 0.3s ease-out',
-      },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
@@ -67,6 +62,28 @@ export default {
           '0%': { opacity: '0', transform: 'translateX(-20px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
+        revealUp: {
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.4s ease-out',
+        'fade-in-up': 'fadeInUp 0.4s ease-out',
+        'slide-in-left': 'slideInLeft 0.3s ease-out',
+        'reveal-up': 'revealUp 0.5s ease-out forwards',
+      },
+      animationDelay: {
+        '100': '100ms',
+        '200': '200ms',
+        '300': '300ms',
+        '400': '400ms',
+      },
+      transitionDelay: {
+        '100': '100ms',
+        '200': '200ms',
+        '300': '300ms',
+        '400': '400ms',
       },
       maxWidth: {
         content: '1200px',

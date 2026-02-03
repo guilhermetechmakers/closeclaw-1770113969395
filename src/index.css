@@ -94,3 +94,49 @@
   from { opacity: 0; transform: translateX(-20px); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+/* Landing: gradient mesh / blob hero */
+@keyframes blobFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+@keyframes gradientShift {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+}
+.landing-hero-blob {
+  animation: blobFloat 20s ease-in-out infinite, gradientShift 8s ease-in-out infinite;
+}
+.landing-hero-blob-2 {
+  animation: blobFloat 25s ease-in-out infinite reverse, gradientShift 10s ease-in-out infinite;
+}
+.landing-hero-blob-3 {
+  animation: blobFloat 22s ease-in-out infinite 2s, gradientShift 9s ease-in-out infinite 1s;
+}
+
+/* Section scroll reveal (use with .reveal-on-scroll and data-visible) */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.reveal-on-scroll.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-blob,
+  .landing-hero-blob-2,
+  .landing-hero-blob-3 {
+    animation: none;
+  }
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+}

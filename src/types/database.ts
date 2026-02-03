@@ -16,8 +16,101 @@ export interface Database {
         Insert: PasswordResetRequestInsert;
         Update: PasswordResetRequestUpdate;
       };
+      landing_features: {
+        Row: LandingFeatureRow;
+        Insert: LandingFeatureInsert;
+        Update: LandingFeatureUpdate;
+      };
+      landing_integration_logos: {
+        Row: LandingIntegrationLogoRow;
+        Insert: LandingIntegrationLogoInsert;
+        Update: LandingIntegrationLogoUpdate;
+      };
+      landing_pricing_plans: {
+        Row: LandingPricingPlanRow;
+        Insert: LandingPricingPlanInsert;
+        Update: LandingPricingPlanUpdate;
+      };
     };
   };
+}
+
+export interface LandingFeatureRow {
+  id: string;
+  name: string;
+  description: string;
+  icon_url: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LandingFeatureInsert {
+  id?: string;
+  name: string;
+  description: string;
+  icon_url?: string | null;
+  sort_order?: number;
+}
+
+export interface LandingFeatureUpdate {
+  name?: string;
+  description?: string;
+  icon_url?: string | null;
+  sort_order?: number;
+}
+
+export interface LandingIntegrationLogoRow {
+  id: string;
+  provider_name: string;
+  logo_url: string | null;
+  category: 'chat' | 'model';
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LandingIntegrationLogoInsert {
+  id?: string;
+  provider_name: string;
+  logo_url?: string | null;
+  category: 'chat' | 'model';
+  sort_order?: number;
+}
+
+export interface LandingIntegrationLogoUpdate {
+  provider_name?: string;
+  logo_url?: string | null;
+  category?: 'chat' | 'model';
+  sort_order?: number;
+}
+
+export interface LandingPricingPlanRow {
+  id: string;
+  plan_name: string;
+  description: string | null;
+  price: string;
+  features: string[];
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LandingPricingPlanInsert {
+  id?: string;
+  plan_name: string;
+  description?: string | null;
+  price: string;
+  features?: string[];
+  sort_order?: number;
+}
+
+export interface LandingPricingPlanUpdate {
+  plan_name?: string;
+  description?: string | null;
+  price?: string;
+  features?: string[];
+  sort_order?: number;
 }
 
 export interface PasswordResetRequest {
