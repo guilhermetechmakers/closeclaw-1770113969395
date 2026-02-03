@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,8 +49,11 @@ export function Settings() {
               <CardTitle>Secrets management</CardTitle>
               <CardDescription>Keychain, 1Password CLI, encrypted fallback.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Never write long-lived tokens to plaintext.</p>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">Never write long-lived tokens to plaintext. Manage secrets and keychain configuration in the dedicated Secrets &amp; Keychain page.</p>
+              <Button asChild variant="secondary">
+                <Link to="/secrets">Open Secrets &amp; Keychain</Link>
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

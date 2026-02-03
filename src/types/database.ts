@@ -102,6 +102,12 @@ export interface Database {
         Insert: IncidentActionInsert;
         Update: IncidentActionUpdate;
       };
+      secrets: { Row: Secret; Insert: SecretInsert; Update: SecretUpdate };
+      secret_audit_logs: {
+        Row: SecretAuditLog;
+        Insert: SecretAuditLogInsert;
+        Update: never;
+      };
     };
   };
 }
@@ -1425,4 +1431,55 @@ export interface PolicyDocumentUpdate {
   version?: string;
   content?: string;
   effective_date?: string;
+}
+
+// ========== Secrets & Keychain ==========
+
+export type SecretStorageMethod = 'os_keychain' | 'onepassword' | 'encrypted_fallback';
+
+export interface Secret {
+  id: string;
+  user_id: string;
+  name: string;
+  encrypted_value: string | null;
+  storage_method: SecretStorageMethod;
+  key_reference: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecretInsert {
+  id?: string;
+  user_id: string;
+  name: string;
+  encrypted_value?: string | null;
+  storage_method?: SecretStorageMethod;
+  key_reference?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SecretUpdate {
+  name?: string;
+  encrypted_value?: string | null;
+  storage_method?: SecretStorageMethod;
+  key_reference?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SecretAuditLog {
+  id: string;
+  user_id: string;
+  secret_id: string | null;
+  action: string;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface SecretAuditLogInsert {
+  id?: string;
+  user_id: string;
+  secret_id?: string | null;
+  action: string;
+  details?: Record<string, unknown>;
 }

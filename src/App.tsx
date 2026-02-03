@@ -23,6 +23,7 @@ import { Webhooks } from '@/pages/webhooks';
 import { Browser } from '@/pages/browser';
 import { Voice } from '@/pages/voice';
 import { Settings } from '@/pages/settings';
+import { Secrets } from '@/pages/secrets';
 import { Security } from '@/pages/security';
 import { Logs } from '@/pages/logs';
 import { Admin } from '@/pages/admin';
@@ -74,6 +75,7 @@ export default function App() {
                 <Route path="/webhooks" element={<Webhooks />} />
                 <Route path="/browser" element={<Browser />} />
                 <Route path="/voice" element={<Voice />} />
+                <Route path="/secrets" element={<Secrets />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/security" element={<Security />} />
                 <Route path="/logs" element={<Logs />} />
