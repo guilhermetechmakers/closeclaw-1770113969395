@@ -1,9 +1,102 @@
 /**
- * Auth API: signup, password reset, recovery, and email verification via Supabase Auth.
- * Email dispatch and token validation are handled by Supabase.
+ * Auth API: signin, signup, signout, password reset, recovery, and email verification via Supabase Auth.
+ * Sessions and JWT are managed by Supabase; OAuth and 2FA are supported when configured in the project.
  */
 
+import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+
+// --- Sign in (email/password) ---
+
+export interface SignInResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Sign in with email and password. On success, Supabase sets the session and refreshes tokens.
+ */
+export async function signIn(email: string, password: string): Promise<SignInResult> {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
+// --- Sign out ---
+
+export interface SignOutResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Sign out the current user and clear the session.
+ */
+export async function signOut(): Promise<SignOutResult> {
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
+// --- Session ---
+
+/**
+ * Get the current session (and user). Use for initial load; subscribe to onAuthStateChange for updates.
+ */
+export async function getSession(): Promise<{ user: User | null; session: Session | null }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return { user: session?.user ?? null, session };
+}
+
+/**
+ * Subscribe to auth state changes (sign in, sign out, token refresh).
+ */
+export function onAuthStateChange(
+  callback: (event: string, session: Session | null) => void
+): () => void {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    callback(event, session);
+  });
+  return () => subscription.unsubscribe();
+}
+
+// --- OAuth ---
+
+export interface SignInWithOAuthResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Sign in with an OAuth provider (e.g. GitHub, Google). Redirects to the provider; callback URL must be configured in Supabase.
+ */
+export async function signInWithOAuth(
+  provider: 'github' | 'google',
+  options?: { redirectTo?: string }
+): Promise<SignInWithOAuthResult> {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const redirectTo = options?.redirectTo
+    ? `${baseUrl}${options.redirectTo.startsWith('/') ? options.redirectTo : `/${options.redirectTo}`}`
+    : `${baseUrl}/dashboard`;
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo },
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
+// --- Sign up ---
 
 export interface SignUpResult {
   success: boolean;

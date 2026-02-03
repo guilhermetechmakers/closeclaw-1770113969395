@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { AuthProvider } from '@/contexts/auth-context';
+import { RequireAuth } from '@/components/auth/require-auth';
 import { OperationStateProviderWithUI } from '@/components/loading';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Landing } from '@/pages/landing';
@@ -45,41 +47,45 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <OperationStateProviderWithUI>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot-password" element={<PasswordReset />} />
-          <Route path="/verify-email" element={<EmailVerification />} />
-          <Route path="/download" element={<DownloadPage />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/500" element={<ServerError />} />
+        <AuthProvider>
+          <OperationStateProviderWithUI>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<PasswordReset />} />
+              <Route path="/verify-email" element={<EmailVerification />} />
+              <Route path="/download" element={<DownloadPage />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/500" element={<ServerError />} />
 
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/channels" element={<Channels />} />
-            <Route path="/skills" element={<Skills />} />
-            <Route path="/skill-editor/:skillId?" element={<SkillEditor />} />
-            <Route path="/nodes" element={<Nodes />} />
-            <Route path="/cron" element={<Cron />} />
-            <Route path="/webhooks" element={<Webhooks />} />
-            <Route path="/browser" element={<Browser />} />
-            <Route path="/voice" element={<Voice />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/security" element={<Security />} />
-            <Route path="/logs" element={<Logs />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/help" element={<Help />} />
-          </Route>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<RequireAuth />}>
+                  <Route index element={<Profile />} />
+                </Route>
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/channels" element={<Channels />} />
+                <Route path="/skills" element={<Skills />} />
+                <Route path="/skill-editor/:skillId?" element={<SkillEditor />} />
+                <Route path="/nodes" element={<Nodes />} />
+                <Route path="/cron" element={<Cron />} />
+                <Route path="/webhooks" element={<Webhooks />} />
+                <Route path="/browser" element={<Browser />} />
+                <Route path="/voice" element={<Voice />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/security" element={<Security />} />
+                <Route path="/logs" element={<Logs />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/help" element={<Help />} />
+              </Route>
 
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        </OperationStateProviderWithUI>
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </OperationStateProviderWithUI>
+        </AuthProvider>
       </BrowserRouter>
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
