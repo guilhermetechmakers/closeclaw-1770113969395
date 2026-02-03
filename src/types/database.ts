@@ -48,6 +48,7 @@ export interface Database {
       browser_scripts: { Row: BrowserScript; Insert: BrowserScriptInsert; Update: BrowserScriptUpdate };
       browser_capture_records: { Row: BrowserCaptureRecord; Insert: BrowserCaptureRecordInsert };
       browser_cdp_tokens: { Row: BrowserCdpToken; Insert: BrowserCdpTokenInsert; Update: BrowserCdpTokenUpdate };
+      browser_commands: { Row: BrowserCommand; Insert: BrowserCommandInsert; Update: BrowserCommandUpdate };
       wake_words: { Row: WakeWord; Insert: WakeWordInsert; Update: WakeWordUpdate };
       talk_mode_settings: { Row: TalkModeSetting; Insert: TalkModeSettingInsert; Update: TalkModeSettingUpdate };
       transcription_backends: { Row: TranscriptionBackend; Insert: TranscriptionBackendInsert; Update: TranscriptionBackendUpdate };
@@ -1337,6 +1338,47 @@ export interface BrowserCdpTokenUpdate {
   token_preview?: string | null;
   config_json?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
+}
+
+export type BrowserCommandType =
+  | 'click'
+  | 'type'
+  | 'select'
+  | 'navigate'
+  | 'scroll'
+  | 'wait'
+  | 'screenshot';
+
+export type BrowserCommandStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+export interface BrowserCommand {
+  id: string;
+  browser_profile_id: string;
+  command_type: BrowserCommandType;
+  parameters: Record<string, unknown>;
+  sequence_order: number;
+  status: BrowserCommandStatus;
+  result_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BrowserCommandInsert {
+  id?: string;
+  browser_profile_id: string;
+  command_type: BrowserCommandType;
+  parameters?: Record<string, unknown>;
+  sequence_order?: number;
+  status?: BrowserCommandStatus;
+  result_message?: string | null;
+}
+
+export interface BrowserCommandUpdate {
+  command_type?: BrowserCommandType;
+  parameters?: Record<string, unknown>;
+  sequence_order?: number;
+  status?: BrowserCommandStatus;
+  result_message?: string | null;
 }
 
 // ========== Privacy Policy ==========

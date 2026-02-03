@@ -10,6 +10,8 @@ import type {
   BrowserCaptureRecordInsert,
   BrowserCdpTokenInsert,
   BrowserCdpTokenUpdate,
+  BrowserCommandInsert,
+  BrowserCommandUpdate,
 } from '@/types/database';
 
 function safeGet<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
@@ -26,6 +28,8 @@ export const BROWSER_KEYS = {
   script: (id: string | null) => [...BROWSER_KEYS.all, 'script', id ?? ''] as const,
   captures: (profileId: string | null, params?: { limit?: number; type?: string }) =>
     [...BROWSER_KEYS.all, 'captures', profileId ?? '', params] as const,
+  commands: (profileId: string | null) => [...BROWSER_KEYS.all, 'commands', profileId ?? ''] as const,
+  command: (id: string | null) => [...BROWSER_KEYS.all, 'command', id ?? ''] as const,
   cdpTokens: () => [...BROWSER_KEYS.all, 'cdpTokens'] as const,
   cdpToken: (id: string | null) => [...BROWSER_KEYS.all, 'cdpToken', id ?? ''] as const,
 };
@@ -199,6 +203,82 @@ export function useCreateBrowserCaptureRecord() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to save capture');
+    },
+  });
+}
+
+export function useDeleteBrowserCaptureRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => browserApi.deleteCaptureRecord(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BROWSER_KEYS.all });
+      toast.success('Capture removed');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to remove capture');
+    },
+  });
+}
+
+export function useBrowserCommands(profileId: string | null) {
+  return useQuery({
+    queryKey: BROWSER_KEYS.commands(profileId),
+    queryFn: () => browserApi.getCommands(profileId),
+    enabled: !!profileId,
+  });
+}
+
+export function useBrowserCommand(id: string | null) {
+  return useQuery({
+    queryKey: BROWSER_KEYS.command(id),
+    queryFn: () => (id ? browserApi.getCommand(id) : Promise.resolve(null)),
+    enabled: !!id,
+  });
+}
+
+export function useCreateBrowserCommand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: BrowserCommandInsert) => browserApi.createCommand(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: BROWSER_KEYS.commands(variables.browser_profile_id),
+      });
+      toast.success('Command added to queue');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to add command');
+    },
+  });
+}
+
+export function useUpdateBrowserCommand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: BrowserCommandUpdate }) =>
+      browserApi.updateCommand(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: BROWSER_KEYS.command(id) });
+      queryClient.invalidateQueries({ queryKey: BROWSER_KEYS.all });
+      toast.success('Command updated');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update command');
+    },
+  });
+}
+
+export function useDeleteBrowserCommand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => browserApi.deleteCommand(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BROWSER_KEYS.all });
+      toast.success('Command removed');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to remove command');
     },
   });
 }

@@ -14,6 +14,9 @@ import type {
   BrowserCdpToken,
   BrowserCdpTokenInsert,
   BrowserCdpTokenUpdate,
+  BrowserCommand,
+  BrowserCommandInsert,
+  BrowserCommandUpdate,
 } from '@/types/database';
 
 export const browserApi = {
@@ -195,6 +198,58 @@ export const browserApi = {
       .single();
     if (error) throw new Error(error.message);
     return data as BrowserCaptureRecord;
+  },
+
+  // Browser commands (command queue per profile)
+  getCommands: async (profileId: string | null): Promise<BrowserCommand[]> => {
+    if (!profileId) return [];
+    const { data, error } = await supabase
+      .from('browser_commands')
+      .select('*')
+      .eq('browser_profile_id', profileId)
+      .order('sequence_order', { ascending: true })
+      .order('created_at', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as BrowserCommand[];
+  },
+
+  getCommand: async (id: string): Promise<BrowserCommand | null> => {
+    const { data, error } = await supabase
+      .from('browser_commands')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as BrowserCommand;
+  },
+
+  createCommand: async (payload: BrowserCommandInsert): Promise<BrowserCommand> => {
+    const { data, error } = await supabase
+      .from('browser_commands')
+      .insert(payload as never)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as BrowserCommand;
+  },
+
+  updateCommand: async (id: string, payload: BrowserCommandUpdate): Promise<BrowserCommand> => {
+    const { data, error } = await supabase
+      .from('browser_commands')
+      .update(payload as never)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as BrowserCommand;
+  },
+
+  deleteCommand: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('browser_commands').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   },
 
   deleteCaptureRecord: async (id: string): Promise<void> => {
