@@ -1,13 +1,96 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Clawgate UI Guide + project design */
+    --background: 15 23 36; /* #0F1724 dark surface */
+    --foreground: 255 255 255;
+    --card: 34 36 44; /* #22242C surface/panel */
+    --card-foreground: 255 255 255;
+    --primary: 11 100 198; /* #0B64C6 Deep Blue */
+    --primary-foreground: 255 255 255;
+    --secondary: 34 36 44;
+    --secondary-foreground: 160 163 173;
+    --accent: 0 179 126; /* #00B37E Teal */
+    --accent-foreground: 255 255 255;
+    --muted: 148 163 184; /* #94A3B8 Slate */
+    --muted-foreground: 148 163 184;
+    --border: 49 52 60; /* #31343C */
+    --input: 49 52 60;
+    --ring: 11 100 198;
+    --destructive: 239 68 68; /* #EF4444 */
+    --destructive-foreground: 255 255 255;
+    --success: 22 163 74; /* #16A34A */
+    --warning: 245 158 11; /* #F59E0B */
+    --radius: 0.5rem; /* 8px */
+    --radius-lg: 0.625rem; /* 10px */
+  }
+
+  .light {
+    --background: 255 255 255;
+    --foreground: 15 23 36;
+    --card: 248 250 252;
+    --card-foreground: 15 23 36;
+    --border: 226 232 240;
+    --input: 226 232 240;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@layer base {
+  * {
+    @apply border-[rgb(var(--border))];
+  }
+  body {
+    @apply bg-[rgb(var(--background))] text-[rgb(var(--foreground))] font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 28px;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 22px;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 18px;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  code {
+    font-size: 13px;
+    font-family: ui-monospace, monospace;
+  }
+}
+
+@layer components {
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(var(--background))];
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
