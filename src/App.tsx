@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { OperationStateProviderWithUI } from '@/components/loading';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Landing } from '@/pages/landing';
 import { Login } from '@/pages/login';
@@ -44,6 +45,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <OperationStateProviderWithUI>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -77,6 +79,7 @@ export default function App() {
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </OperationStateProviderWithUI>
       </BrowserRouter>
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
