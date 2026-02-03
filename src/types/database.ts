@@ -159,6 +159,26 @@ export interface Database {
         Insert: MarketplaceLicenseInsert;
         Update: MarketplaceLicenseUpdate;
       };
+      help_faqs: {
+        Row: HelpFaq;
+        Insert: HelpFaqInsert;
+        Update: HelpFaqUpdate;
+      };
+      help_doc_links: {
+        Row: HelpDocLink;
+        Insert: HelpDocLinkInsert;
+        Update: HelpDocLinkUpdate;
+      };
+      support_requests: {
+        Row: SupportRequest;
+        Insert: SupportRequestInsert;
+        Update: SupportRequestUpdate;
+      };
+      help_changelog: {
+        Row: HelpChangelogEntry;
+        Insert: HelpChangelogEntryInsert;
+        Update: HelpChangelogEntryUpdate;
+      };
     };
   };
 }
@@ -2017,4 +2037,104 @@ export interface MarketplaceLicenseUpdate {
   activation_status?: MarketplaceLicenseActivationStatus;
   expiration_date?: string | null;
   metadata?: Record<string, unknown>;
+}
+
+// ========== About / Help ==========
+
+export interface HelpFaq {
+  id: string;
+  question_text: string;
+  answer_text: string;
+  category: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HelpFaqInsert {
+  id?: string;
+  question_text: string;
+  answer_text: string;
+  category?: string | null;
+  sort_order?: number;
+}
+
+export interface HelpFaqUpdate {
+  question_text?: string;
+  answer_text?: string;
+  category?: string | null;
+  sort_order?: number;
+}
+
+export interface HelpDocLink {
+  id: string;
+  title: string;
+  url: string;
+  category: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HelpDocLinkInsert {
+  id?: string;
+  title: string;
+  url: string;
+  category?: string | null;
+  sort_order?: number;
+}
+
+export interface HelpDocLinkUpdate {
+  title?: string;
+  url?: string;
+  category?: string | null;
+  sort_order?: number;
+}
+
+export type SupportRequestStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
+
+export interface SupportRequest {
+  id: string;
+  user_id: string | null;
+  name: string;
+  email: string;
+  issue_description: string;
+  context_info: Record<string, unknown>;
+  status: SupportRequestStatus;
+  created_at: string;
+}
+
+export interface SupportRequestInsert {
+  id?: string;
+  user_id?: string | null;
+  name: string;
+  email: string;
+  issue_description: string;
+  context_info?: Record<string, unknown>;
+  status?: SupportRequestStatus;
+}
+
+export interface SupportRequestUpdate {
+  status?: SupportRequestStatus;
+}
+
+export interface HelpChangelogEntry {
+  id: string;
+  version_number: string | null;
+  date: string;
+  description: string;
+  created_at: string;
+}
+
+export interface HelpChangelogEntryInsert {
+  id?: string;
+  version_number?: string | null;
+  date: string;
+  description: string;
+}
+
+export interface HelpChangelogEntryUpdate {
+  version_number?: string | null;
+  date?: string;
+  description?: string;
 }
