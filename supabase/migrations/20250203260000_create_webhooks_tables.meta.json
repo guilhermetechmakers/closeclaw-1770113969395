@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203260000_create_webhooks_tables",
+  "created_at": "2025-02-03T26:00:00Z",
+  "description": "Webhooks, hook_scripts, and payload_templates for Webhooks & Hooks page",
+  "tables_created": ["webhooks", "hook_scripts", "payload_templates"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS payload_templates CASCADE; DROP TABLE IF EXISTS hook_scripts CASCADE; DROP TABLE IF EXISTS webhooks CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

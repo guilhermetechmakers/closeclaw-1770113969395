@@ -55,8 +55,107 @@ export interface Database {
       skills: { Row: Skill; Insert: SkillInsert; Update: SkillUpdate };
       skill_test_runs: { Row: SkillTestRun; Insert: SkillTestRunInsert; Update: SkillTestRunUpdate };
       skill_versions: { Row: SkillVersion; Insert: SkillVersionInsert };
+      webhooks: { Row: Webhook; Insert: WebhookInsert; Update: WebhookUpdate };
+      hook_scripts: { Row: HookScript; Insert: HookScriptInsert; Update: HookScriptUpdate };
+      payload_templates: { Row: PayloadTemplate; Insert: PayloadTemplateInsert; Update: PayloadTemplateUpdate };
     };
   };
+}
+
+// ========== Webhooks & Hooks ==========
+
+export interface Webhook {
+  id: string;
+  user_id: string;
+  route_name: string;
+  token_preview: string;
+  token_hash: string | null;
+  url: string;
+  last_received_at: string | null;
+  mapping_template: string | null;
+  delivery_route: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WebhookInsert {
+  id?: string;
+  user_id: string;
+  route_name: string;
+  token_preview: string;
+  token_hash?: string | null;
+  url: string;
+  last_received_at?: string | null;
+  mapping_template?: string | null;
+  delivery_route?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface WebhookUpdate {
+  route_name?: string;
+  token_preview?: string;
+  token_hash?: string | null;
+  url?: string;
+  last_received_at?: string | null;
+  mapping_template?: string | null;
+  delivery_route?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export type HookScriptLanguage = 'javascript' | 'python';
+
+export interface HookScript {
+  id: string;
+  user_id: string;
+  webhook_id: string | null;
+  event_trigger: string;
+  script_content: string;
+  language: HookScriptLanguage;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HookScriptInsert {
+  id?: string;
+  user_id: string;
+  webhook_id?: string | null;
+  event_trigger: string;
+  script_content?: string;
+  language?: HookScriptLanguage;
+  metadata?: Record<string, unknown>;
+}
+
+export interface HookScriptUpdate {
+  webhook_id?: string | null;
+  event_trigger?: string;
+  script_content?: string;
+  language?: HookScriptLanguage;
+  metadata?: Record<string, unknown>;
+}
+
+export interface PayloadTemplate {
+  id: string;
+  user_id: string;
+  webhook_id: string;
+  template_content: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PayloadTemplateInsert {
+  id?: string;
+  user_id: string;
+  webhook_id: string;
+  template_content?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface PayloadTemplateUpdate {
+  template_content?: string;
+  metadata?: Record<string, unknown>;
 }
 
 // ========== Skill Editor (skills, skill_test_runs, skill_versions) ==========
