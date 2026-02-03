@@ -59,8 +59,88 @@ export interface Database {
       webhooks: { Row: Webhook; Insert: WebhookInsert; Update: WebhookUpdate };
       hook_scripts: { Row: HookScript; Insert: HookScriptInsert; Update: HookScriptUpdate };
       payload_templates: { Row: PayloadTemplate; Insert: PayloadTemplateInsert; Update: PayloadTemplateUpdate };
+      logs: { Row: Log; Insert: LogInsert };
+      run_traces: { Row: RunTrace; Insert: RunTraceInsert; Update: RunTraceUpdate };
+      log_retention_settings: {
+        Row: LogRetentionSetting;
+        Insert: LogRetentionSettingInsert;
+        Update: LogRetentionSettingUpdate;
+      };
     };
   };
+}
+
+// ========== Logs & Tracing ==========
+
+export type LogSeverity = 'debug' | 'info' | 'warning' | 'error' | 'critical';
+
+export interface Log {
+  id: string;
+  user_id: string;
+  timestamp: string;
+  severity: LogSeverity;
+  message: string;
+  redacted_message: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface LogInsert {
+  id?: string;
+  user_id: string;
+  timestamp?: string;
+  severity: LogSeverity;
+  message: string;
+  redacted_message?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface RunTrace {
+  id: string;
+  log_id: string;
+  user_id: string;
+  tool_invocation: unknown[];
+  model_calls: unknown[];
+  duration_ms: number | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RunTraceInsert {
+  id?: string;
+  log_id: string;
+  user_id: string;
+  tool_invocation?: unknown[];
+  model_calls?: unknown[];
+  duration_ms?: number | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface RunTraceUpdate {
+  tool_invocation?: unknown[];
+  model_calls?: unknown[];
+  duration_ms?: number | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface LogRetentionSetting {
+  user_id: string;
+  retention_period_days: number;
+  purge_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LogRetentionSettingInsert {
+  user_id: string;
+  retention_period_days?: number;
+  purge_enabled?: boolean;
+}
+
+export interface LogRetentionSettingUpdate {
+  retention_period_days?: number;
+  purge_enabled?: boolean;
 }
 
 // ========== Webhooks & Hooks ==========

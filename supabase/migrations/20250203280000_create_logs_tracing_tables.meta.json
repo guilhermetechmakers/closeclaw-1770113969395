@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203280000_create_logs_tracing_tables",
+  "created_at": "2025-02-03T28:00:00Z",
+  "description": "Create logs, run_traces, and log_retention_settings for Logs & Tracing page",
+  "tables_created": ["logs", "run_traces", "log_retention_settings"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS log_retention_settings CASCADE; DROP TABLE IF EXISTS run_traces CASCADE; DROP TABLE IF EXISTS logs CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}
