@@ -47,8 +47,139 @@ export interface Database {
       browser_scripts: { Row: BrowserScript; Insert: BrowserScriptInsert; Update: BrowserScriptUpdate };
       browser_capture_records: { Row: BrowserCaptureRecord; Insert: BrowserCaptureRecordInsert };
       browser_cdp_tokens: { Row: BrowserCdpToken; Insert: BrowserCdpTokenInsert; Update: BrowserCdpTokenUpdate };
+      wake_words: { Row: WakeWord; Insert: WakeWordInsert; Update: WakeWordUpdate };
+      talk_mode_settings: { Row: TalkModeSetting; Insert: TalkModeSettingInsert; Update: TalkModeSettingUpdate };
+      transcription_backends: { Row: TranscriptionBackend; Insert: TranscriptionBackendInsert; Update: TranscriptionBackendUpdate };
+      tts_provider_settings: { Row: TtsProviderSetting; Insert: TtsProviderSettingInsert; Update: TtsProviderSettingUpdate };
+      media_settings: { Row: MediaSetting; Insert: MediaSettingInsert; Update: MediaSettingUpdate };
     };
   };
+}
+
+// ========== Voice & Media ==========
+
+export type WakeWordStatus = 'active' | 'inactive';
+
+export interface WakeWord {
+  id: string;
+  user_id: string;
+  word: string;
+  status: WakeWordStatus;
+  propagate_to_nodes: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WakeWordInsert {
+  id?: string;
+  user_id: string;
+  word: string;
+  status?: WakeWordStatus;
+  propagate_to_nodes?: boolean;
+}
+
+export interface WakeWordUpdate {
+  word?: string;
+  status?: WakeWordStatus;
+  propagate_to_nodes?: boolean;
+}
+
+export type InterruptSensitivity = 'low' | 'medium' | 'high';
+
+export interface TalkModeSetting {
+  id: string;
+  user_id: string;
+  node_id: string | null;
+  enabled: boolean;
+  interrupt_sensitivity: InterruptSensitivity;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TalkModeSettingInsert {
+  id?: string;
+  user_id: string;
+  node_id?: string | null;
+  enabled?: boolean;
+  interrupt_sensitivity?: InterruptSensitivity;
+}
+
+export interface TalkModeSettingUpdate {
+  node_id?: string | null;
+  enabled?: boolean;
+  interrupt_sensitivity?: InterruptSensitivity;
+}
+
+export interface TranscriptionBackend {
+  id: string;
+  user_id: string;
+  provider_list: string[];
+  cli_fallback: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TranscriptionBackendInsert {
+  id?: string;
+  user_id: string;
+  provider_list?: string[];
+  cli_fallback?: string | null;
+}
+
+export interface TranscriptionBackendUpdate {
+  provider_list?: string[];
+  cli_fallback?: string | null;
+}
+
+export interface TtsProviderSetting {
+  id: string;
+  user_id: string;
+  provider: string;
+  model: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TtsProviderSettingInsert {
+  id?: string;
+  user_id: string;
+  provider?: string;
+  model?: string | null;
+}
+
+export interface TtsProviderSettingUpdate {
+  provider?: string;
+  model?: string | null;
+}
+
+export type MediaFallbackStrategy = 'local' | 'cloud' | 'none';
+export type AudioNoteHandling = 'store' | 'transcribe_and_store' | 'transcribe_only' | 'discard';
+
+export interface MediaSetting {
+  id: string;
+  user_id: string;
+  retention_days: number;
+  size_cap_mb: number;
+  fallback_strategy: MediaFallbackStrategy;
+  audio_note_handling: AudioNoteHandling;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MediaSettingInsert {
+  id?: string;
+  user_id: string;
+  retention_days?: number;
+  size_cap_mb?: number;
+  fallback_strategy?: MediaFallbackStrategy;
+  audio_note_handling?: AudioNoteHandling;
+}
+
+export interface MediaSettingUpdate {
+  retention_days?: number;
+  size_cap_mb?: number;
+  fallback_strategy?: MediaFallbackStrategy;
+  audio_note_handling?: AudioNoteHandling;
 }
 
 // ========== Channels & Adapters ==========

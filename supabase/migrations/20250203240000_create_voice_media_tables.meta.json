@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203240000_create_voice_media_tables",
+  "created_at": "2025-02-03T24:00:00Z",
+  "description": "Voice & Media: wake words, talk mode per node, transcription backends, TTS provider, media settings",
+  "tables_created": ["wake_words", "talk_mode_settings", "transcription_backends", "tts_provider_settings", "media_settings"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS media_settings CASCADE; DROP TABLE IF EXISTS tts_provider_settings CASCADE; DROP TABLE IF EXISTS transcription_backends CASCADE; DROP TABLE IF EXISTS talk_mode_settings CASCADE; DROP TABLE IF EXISTS wake_words CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}
