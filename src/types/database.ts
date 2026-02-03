@@ -119,6 +119,26 @@ export interface Database {
         Insert: ConfigurationOverrideInsert;
         Update: ConfigurationOverrideUpdate;
       };
+      admin_workspaces: {
+        Row: AdminWorkspace;
+        Insert: AdminWorkspaceInsert;
+        Update: AdminWorkspaceUpdate;
+      };
+      admin_workspace_members: {
+        Row: AdminWorkspaceMember;
+        Insert: AdminWorkspaceMemberInsert;
+        Update: AdminWorkspaceMemberUpdate;
+      };
+      admin_licenses: {
+        Row: AdminLicense;
+        Insert: AdminLicenseInsert;
+        Update: AdminLicenseUpdate;
+      };
+      admin_analytics_metrics: {
+        Row: AdminAnalyticsMetric;
+        Insert: AdminAnalyticsMetricInsert;
+        Update: never;
+      };
     };
   };
 }
@@ -1738,4 +1758,103 @@ export interface ConfigurationOverrideUpdate {
   temperature?: number | null;
   max_tokens?: number | null;
   parameters?: Record<string, unknown>;
+}
+
+// ========== Admin & Analytics ==========
+
+export type AdminWorkspaceStatus = 'active' | 'archived' | 'suspended';
+
+export interface AdminWorkspace {
+  id: string;
+  name: string;
+  active_users_count: number;
+  configuration_details: Record<string, unknown>;
+  status: AdminWorkspaceStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminWorkspaceInsert {
+  id?: string;
+  name: string;
+  active_users_count?: number;
+  configuration_details?: Record<string, unknown>;
+  status?: AdminWorkspaceStatus;
+}
+
+export interface AdminWorkspaceUpdate {
+  name?: string;
+  active_users_count?: number;
+  configuration_details?: Record<string, unknown>;
+  status?: AdminWorkspaceStatus;
+}
+
+export type AdminWorkspaceMemberRole = 'admin' | 'member' | 'viewer';
+
+export interface AdminWorkspaceMember {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  role: AdminWorkspaceMemberRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminWorkspaceMemberInsert {
+  id?: string;
+  workspace_id: string;
+  user_id: string;
+  role?: AdminWorkspaceMemberRole;
+}
+
+export interface AdminWorkspaceMemberUpdate {
+  role?: AdminWorkspaceMemberRole;
+}
+
+export type AdminLicenseType = 'seat' | 'pro' | 'enterprise' | 'trial';
+
+export interface AdminLicense {
+  id: string;
+  workspace_id: string;
+  user_id: string | null;
+  license_type: AdminLicenseType;
+  expiry_date: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminLicenseInsert {
+  id?: string;
+  workspace_id: string;
+  user_id?: string | null;
+  license_type: AdminLicenseType;
+  expiry_date?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AdminLicenseUpdate {
+  user_id?: string | null;
+  license_type?: AdminLicenseType;
+  expiry_date?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AdminAnalyticsMetric {
+  id: string;
+  workspace_id: string | null;
+  metric_type: string;
+  value: number;
+  bucket_time: string;
+  dimensions: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AdminAnalyticsMetricInsert {
+  id?: string;
+  workspace_id?: string | null;
+  metric_type: string;
+  value: number;
+  bucket_time: string;
+  dimensions?: Record<string, unknown>;
 }

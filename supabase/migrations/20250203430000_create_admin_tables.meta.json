@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203430000_create_admin_tables",
+  "created_at": "2025-02-03T43:00:00Z",
+  "description": "Admin & Analytics tables: workspaces, workspace members, licenses, analytics metrics",
+  "tables_created": ["admin_workspaces", "admin_workspace_members", "admin_licenses", "admin_analytics_metrics"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS admin_analytics_metrics CASCADE; DROP TABLE IF EXISTS admin_licenses CASCADE; DROP TABLE IF EXISTS admin_workspace_members CASCADE; DROP TABLE IF EXISTS admin_workspaces CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}
