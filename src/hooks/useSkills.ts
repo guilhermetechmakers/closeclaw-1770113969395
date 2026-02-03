@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { skillsApi } from '@/api/skills';
-import type { SkillInsert, SkillUpdate } from '@/types/database';
+import { skillsApi, librarySkillsApi, type RegistrySkillItem, type RegistryListParams } from '@/api/skills';
+import type { SkillInsert, SkillUpdate, LibrarySkillInsert, LibrarySkillUpdate } from '@/types/database';
 
 function safeGet<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   return fn().catch(() => fallback);
@@ -154,6 +154,169 @@ export function useCommitSkill() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to commit');
+    },
+  });
+}
+
+// ========== Skills Library (installed from registry) ==========
+
+export const LIBRARY_SKILLS_KEYS = {
+  all: ['library-skills'] as const,
+  list: () => [...LIBRARY_SKILLS_KEYS.all, 'list'] as const,
+  detail: (id: string) => [...LIBRARY_SKILLS_KEYS.all, 'detail', id] as const,
+  registry: (params?: RegistryListParams) =>
+    [...LIBRARY_SKILLS_KEYS.all, 'registry', params] as const,
+};
+
+export function useLibrarySkillsList() {
+  return useQuery({
+    queryKey: LIBRARY_SKILLS_KEYS.list(),
+    queryFn: () => safeGet(() => librarySkillsApi.list(), []),
+  });
+}
+
+export function useLibrarySkill(id: string | null) {
+  return useQuery({
+    queryKey: LIBRARY_SKILLS_KEYS.detail(id ?? ''),
+    queryFn: () =>
+      id ? safeGet(() => librarySkillsApi.get(id), null) : Promise.resolve(null),
+    enabled: !!id,
+  });
+}
+
+export function useInstallLibrarySkill() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Omit<LibrarySkillInsert, 'user_id'>) =>
+      librarySkillsApi.install(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LIBRARY_SKILLS_KEYS.list() });
+      toast.success('Skill installed');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to install skill');
+    },
+  });
+}
+
+export function useUpdateLibrarySkill() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: LibrarySkillUpdate }) =>
+      librarySkillsApi.update(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: LIBRARY_SKILLS_KEYS.list() });
+      queryClient.invalidateQueries({ queryKey: LIBRARY_SKILLS_KEYS.detail(id) });
+      toast.success('Skill updated');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update skill');
+    },
+  });
+}
+
+export function useSetLibrarySkillEnabled() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
+      librarySkillsApi.setEnabled(id, enabled),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: LIBRARY_SKILLS_KEYS.list() });
+      queryClient.invalidateQueries({ queryKey: LIBRARY_SKILLS_KEYS.detail(id) });
+      toast.success('Skill status updated');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update skill status');
+    },
+  });
+}
+
+export function useUninstallLibrarySkill() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => librarySkillsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LIBRARY_SKILLS_KEYS.list() });
+      toast.success('Skill uninstalled');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to uninstall skill');
+    },
+  });
+}
+
+/** Registry browser: list from API; falls back to mock list when API is unavailable */
+const MOCK_REGISTRY: RegistrySkillItem[] = [
+  {
+    id: 'gmail-watcher',
+    name: 'Gmail Watcher',
+    version: '1.0.0',
+    registry_slug: 'gmail-watcher',
+    description: 'Watch Gmail via Pub/Sub and deliver events to chat.',
+    readme_content: '# Gmail Watcher\n\nUses Gmail Pub/Sub. Requires env: `GMAIL_CREDENTIALS`, `GMAIL_TOPIC`.\n',
+    frontmatter: { permissions: ['network'], env: ['GMAIL_CREDENTIALS', 'GMAIL_TOPIC'] },
+    permissions: ['network'],
+    binary_requirements: [],
+    environment_requirements: ['GMAIL_CREDENTIALS', 'GMAIL_TOPIC'],
+    popularity: 95,
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'url-summarizer',
+    name: 'URL Summarizer',
+    version: '1.0.0',
+    registry_slug: 'url-summarizer',
+    description: 'Fetch a URL and summarize content via browser tool.',
+    readme_content: '# URL Summarizer\n\nUses browser automation. No extra env required.\n',
+    frontmatter: { permissions: ['browser'] },
+    permissions: ['browser'],
+    binary_requirements: [],
+    environment_requirements: [],
+    popularity: 88,
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'cron-reminder',
+    name: 'Cron Reminder',
+    version: '1.0.0',
+    registry_slug: 'cron-reminder',
+    description: 'Schedule reminders and deliver to chat.',
+    readme_content: '# Cron Reminder\n\nSchedule cron jobs. No extra env.\n',
+    frontmatter: { permissions: [] },
+    permissions: [],
+    binary_requirements: [],
+    environment_requirements: [],
+    popularity: 72,
+    updated_at: new Date().toISOString(),
+  },
+];
+
+export function useRegistrySkills(params?: RegistryListParams) {
+  return useQuery({
+    queryKey: LIBRARY_SKILLS_KEYS.registry(params),
+    queryFn: async () => {
+      try {
+        return await librarySkillsApi.registry(params);
+      } catch {
+        let list = [...MOCK_REGISTRY];
+        const search = params?.search?.toLowerCase();
+        if (search) {
+          list = list.filter(
+            (s) =>
+              s.name.toLowerCase().includes(search) ||
+              s.registry_slug.toLowerCase().includes(search)
+          );
+        }
+        const sort = params?.sort ?? 'popularity';
+        if (sort === 'name') {
+          list.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (sort === 'recent') {
+          list.sort((a, b) => (b.updated_at > a.updated_at ? 1 : -1));
+        } else {
+          list.sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
+        }
+        return list;
+      }
     },
   });
 }

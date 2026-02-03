@@ -60,6 +60,7 @@ export interface Database {
       skills: { Row: Skill; Insert: SkillInsert; Update: SkillUpdate };
       skill_test_runs: { Row: SkillTestRun; Insert: SkillTestRunInsert; Update: SkillTestRunUpdate };
       skill_versions: { Row: SkillVersion; Insert: SkillVersionInsert };
+      library_skills: { Row: LibrarySkill; Insert: LibrarySkillInsert; Update: LibrarySkillUpdate };
       webhooks: { Row: Webhook; Insert: WebhookInsert; Update: WebhookUpdate };
       hook_scripts: { Row: HookScript; Insert: HookScriptInsert; Update: HookScriptUpdate };
       payload_templates: { Row: PayloadTemplate; Insert: PayloadTemplateInsert; Update: PayloadTemplateUpdate };
@@ -673,6 +674,68 @@ export interface SkillVersionInsert {
   version_number: string;
   changes?: string | null;
   content_snapshot?: string | null;
+}
+
+// ========== Skills Library (installed skills from registry) ==========
+
+export type LibrarySkillSignatureStatus = 'verified' | 'unverified' | 'quarantined' | 'unknown';
+export type LibrarySkillEligibilityStatus = 'eligible' | 'ineligible' | 'unknown';
+
+export interface LibrarySkill {
+  id: string;
+  user_id: string;
+  name: string;
+  version: string;
+  registry_slug: string | null;
+  hash: string | null;
+  permissions: unknown[];
+  binary_requirements: unknown[];
+  environment_requirements: unknown[];
+  readme_content: string;
+  frontmatter: Record<string, unknown>;
+  signature_status: LibrarySkillSignatureStatus | null;
+  enabled: boolean;
+  last_run_at: string | null;
+  eligibility_status: LibrarySkillEligibilityStatus;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LibrarySkillInsert {
+  id?: string;
+  user_id: string;
+  name: string;
+  version?: string;
+  registry_slug?: string | null;
+  hash?: string | null;
+  permissions?: unknown[];
+  binary_requirements?: unknown[];
+  environment_requirements?: unknown[];
+  readme_content?: string;
+  frontmatter?: Record<string, unknown>;
+  signature_status?: LibrarySkillSignatureStatus | null;
+  enabled?: boolean;
+  last_run_at?: string | null;
+  eligibility_status?: LibrarySkillEligibilityStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export interface LibrarySkillUpdate {
+  name?: string;
+  version?: string;
+  registry_slug?: string | null;
+  hash?: string | null;
+  permissions?: unknown[];
+  binary_requirements?: unknown[];
+  environment_requirements?: unknown[];
+  readme_content?: string;
+  frontmatter?: Record<string, unknown>;
+  signature_status?: LibrarySkillSignatureStatus | null;
+  enabled?: boolean;
+  last_run_at?: string | null;
+  eligibility_status?: LibrarySkillEligibilityStatus;
+  metadata?: Record<string, unknown>;
 }
 
 // ========== Voice & Media ==========

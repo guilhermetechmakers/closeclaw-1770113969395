@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203520000_create_library_skills_tables",
+  "created_at": "2025-02-03T00:00:00Z",
+  "description": "Library skills table for Skills Library: installed skills per user with provenance, enable/disable, last run, eligibility",
+  "tables_created": ["library_skills"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS library_skills CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}
