@@ -11,8 +11,37 @@ export interface Database {
       device_sessions: { Row: DeviceSession; Insert: DeviceSessionInsert; Update: DeviceSessionUpdate };
       api_keys: { Row: ApiKey; Insert: ApiKeyInsert; Update: ApiKeyUpdate };
       security_settings: { Row: SecuritySetting; Insert: SecuritySettingInsert; Update: SecuritySettingUpdate };
+      password_reset_requests: {
+        Row: PasswordResetRequest;
+        Insert: PasswordResetRequestInsert;
+        Update: PasswordResetRequestUpdate;
+      };
     };
   };
+}
+
+export interface PasswordResetRequest {
+  id: string;
+  user_id: string | null;
+  request_time: string;
+  status: 'requested' | 'completed' | 'expired';
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface PasswordResetRequestInsert {
+  id?: string;
+  user_id?: string | null;
+  request_time?: string;
+  status: 'requested' | 'completed' | 'expired';
+  metadata?: Record<string, unknown>;
+}
+
+export interface PasswordResetRequestUpdate {
+  user_id?: string | null;
+  request_time?: string;
+  status?: 'requested' | 'completed' | 'expired';
+  metadata?: Record<string, unknown>;
 }
 
 export interface Profile {
