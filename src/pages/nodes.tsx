@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,7 @@ import {
   Terminal,
   Monitor,
   Camera,
+  ChevronRight,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -43,6 +45,8 @@ import { PairingModal } from '@/components/nodes/pairing-modal';
 import { ApprovalRequestModal } from '@/components/nodes/approval-request-modal';
 import { CapabilityConfigForm } from '@/components/nodes/capability-config-form';
 import { NodeHealthDialog } from '@/components/dashboard/node-health-dialog';
+import { UnpairConfirmDialog } from '@/components/nodes/unpair-confirm-dialog';
+import { NodeDetailsCard } from '@/components/nodes/node-details-card';
 
 const statusVariants: Record<Node['status'], 'success' | 'warning' | 'destructive' | 'secondary'> = {
   paired: 'success',
@@ -65,6 +69,14 @@ const capabilityIcons: Record<string, typeof Cpu> = {
   camera_capture: Camera,
 };
 
+const capabilityBadgeLabels: Record<string, string> = {
+  voice_wake: 'Voice',
+  talk_mode: 'Talk',
+  remote_exec: 'Exec',
+  browser_proxy: 'Browser',
+  camera_capture: 'Camera',
+};
+
 export function Nodes() {
   const [pairingOpen, setPairingOpen] = useState(false);
   const [pairingRequest, setPairingRequest] = useState<PairingRequest | null>(null);
@@ -74,11 +86,13 @@ export function Nodes() {
   const [capabilityFormOpen, setCapabilityFormOpen] = useState(false);
   const [selectedCapability, setSelectedCapability] = useState<NodeCapability | null>(null);
   const [healthDialogOpen, setHealthDialogOpen] = useState(false);
+  const [unpairDialogOpen, setUnpairDialogOpen] = useState(false);
+  const [nodeToUnpair, setNodeToUnpair] = useState<Node | null>(null);
 
   const { data: nodes = [], isLoading: nodesLoading } = useNodes();
   const { data: selectedNode } = useNode(selectedNodeId);
   const { data: capabilities = [] } = useNodeCapabilities(selectedNodeId);
-  const { data: approvals = [] } = useNodeApprovals({ status: 'pending', limit: 20 });
+  const { data: approvals = [] } = useNodeApprovals({ limit: 20 });
 
   const startPairing = useStartPairing();
   const updateNode = useUpdateNode();
@@ -125,15 +139,47 @@ export function Nodes() {
     updateNode.mutate({ id, data: { connection_health } });
   };
 
+  const handleUnpairClick = (node: Node) => {
+    setNodeToUnpair(node);
+    setUnpairDialogOpen(true);
+  };
+
+  const handleUnpairConfirm = () => {
+    if (!nodeToUnpair) return;
+    deleteNode.mutate(nodeToUnpair.id);
+    if (selectedNodeId === nodeToUnpair.id) setSelectedNodeId(null);
+    setNodeToUnpair(null);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold">Nodes (Paired Devices)</h1>
-        <Button onClick={() => { setPairingRequest(null); setPairingOpen(true); }}>
-          <Plus className="mr-2 h-4 w-4" />
-          Pair node
-        </Button>
-      </div>
+      <header className="space-y-2">
+        <nav
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+          aria-label="Breadcrumb"
+        >
+          <Link
+            to="/dashboard"
+            className="transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+          >
+            Dashboard
+          </Link>
+          <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="text-foreground font-medium">Nodes (Paired Devices)</span>
+        </nav>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Nodes (Paired Devices)</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Manage paired devices, capabilities, and approval policies.
+            </p>
+          </div>
+          <Button onClick={() => { setPairingRequest(null); setPairingOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" />
+            Pair New Device
+          </Button>
+        </div>
+      </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -155,11 +201,11 @@ export function Nodes() {
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-12 text-center">
                   <Cpu className="mb-4 h-12 w-12 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
-                    No paired nodes. Use Pair node to add a device via QR or code.
+                    No paired nodes. Use Pair New Device to add a device via QR or code.
                   </p>
                   <Button className="mt-4" variant="outline" onClick={() => setPairingOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Pair node
+                    Pair New Device
                   </Button>
                 </div>
               ) : (
@@ -185,18 +231,30 @@ export function Nodes() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="font-medium">{node.name ?? `Node ${node.id.slice(0, 8)}`}</p>
+                            <p className="text-xs text-muted-foreground font-mono">
+                              ID: {node.id.slice(0, 8)}
+                              {node.id.length > 8 ? '…' : ''}
+                            </p>
                             <p className="text-xs text-muted-foreground">
+                              Last seen:{' '}
                               {node.last_active_at
-                                ? `Last active ${formatDistanceToNow(new Date(node.last_active_at), { addSuffix: true })}`
+                                ? formatDistanceToNow(new Date(node.last_active_at), { addSuffix: true })
                                 : 'Never'}
                             </p>
                           </div>
-                          <Badge variant={statusVariants[node.status]} className="shrink-0">
-                            {node.status}
-                          </Badge>
-                          <Badge variant={healthVariants[node.connection_health]} className="shrink-0">
-                            {node.connection_health}
-                          </Badge>
+                          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                            {(node.capabilities ?? []).slice(0, 4).map((key) => (
+                              <Badge key={key} variant="secondary" className="text-[10px] font-normal">
+                                {capabilityBadgeLabels[key] ?? key}
+                              </Badge>
+                            ))}
+                            <Badge variant={statusVariants[node.status]} className="shrink-0">
+                              {node.status}
+                            </Badge>
+                            <Badge variant={healthVariants[node.connection_health]} className="shrink-0">
+                              {node.connection_health}
+                            </Badge>
+                          </div>
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -212,15 +270,10 @@ export function Nodes() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
-                              onClick={() => {
-                                if (window.confirm('Unpair this device? This cannot be undone.')) {
-                                  deleteNode.mutate(node.id);
-                                  if (selectedNodeId === node.id) setSelectedNodeId(null);
-                                }
-                              }}
+                              onClick={() => handleUnpairClick(node)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Unpair
+                              Revoke / Unpair
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -257,6 +310,10 @@ export function Nodes() {
         </div>
 
         <div className="space-y-6">
+          <NodeDetailsCard
+            node={selectedNode ?? null}
+            capabilities={capabilities}
+          />
           <Card className="shadow-card transition-shadow hover:shadow-card-hover">
             <CardHeader>
               <CardTitle>Capabilities</CardTitle>
@@ -331,16 +388,16 @@ export function Nodes() {
 
           <Card className="shadow-card transition-shadow hover:shadow-card-hover">
             <CardHeader>
-              <CardTitle>Approval requests</CardTitle>
+              <CardTitle>Approval history</CardTitle>
               <CardDescription>
-                Pending capability or execution requests.
+                Exec approvals, denied runs, and pending capability or execution requests.
               </CardDescription>
             </CardHeader>
             <CardContent>
               {approvals.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-8 text-center">
                   <ShieldCheck className="mb-3 h-10 w-10 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">No pending approvals.</p>
+                  <p className="text-sm text-muted-foreground">No approvals yet.</p>
                 </div>
               ) : (
                 <ScrollArea className="h-[240px] pr-2">
@@ -411,6 +468,14 @@ export function Nodes() {
         onOpenChange={setHealthDialogOpen}
         onUpdateHealth={handleUpdateHealth}
         isUpdating={updateNode.isPending}
+      />
+
+      <UnpairConfirmDialog
+        open={unpairDialogOpen}
+        onOpenChange={setUnpairDialogOpen}
+        node={nodeToUnpair}
+        onConfirm={handleUnpairConfirm}
+        isUnpairing={deleteNode.isPending}
       />
     </div>
   );
