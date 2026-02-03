@@ -247,3 +247,14 @@ export function useAdminAnalytics(params?: {
     queryFn: () => safeGet(() => adminApi.getAnalyticsMetrics(params), []),
   });
 }
+
+const profileKey = (userId: string) => [...ADMIN_KEYS.all, 'profile', userId] as const;
+
+export function useAdminProfile(userId: string | null) {
+  return useQuery({
+    queryKey: profileKey(userId ?? ''),
+    queryFn: () =>
+      userId ? safeGet(() => adminApi.getProfileByUserId(userId), null) : Promise.resolve(null),
+    enabled: !!userId,
+  });
+}

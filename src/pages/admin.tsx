@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,10 @@ import {
   Filter,
   UserPlus,
   MoreHorizontal,
+  Search,
+  Eye,
+  FileText,
+  Download,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -70,6 +74,11 @@ import {
   AnalyticsFilterDialog,
   type AnalyticsFilterValues,
 } from '@/components/admin/analytics-filter-dialog';
+import { AdminUserDetailModal } from '@/components/admin/admin-user-detail-modal';
+import { WorkspaceSettingsPanel } from '@/components/admin/workspace-settings-panel';
+import { InvoiceDetailsDialog } from '@/components/admin/invoice-details-dialog';
+import { ReportDownloadDialog } from '@/components/admin/report-download-dialog';
+import { Input } from '@/components/ui/input';
 
 const workspaceStatusVariants: Record<
   AdminWorkspace['status'],
@@ -107,9 +116,23 @@ export function Admin() {
   const [editingLicense, setEditingLicense] = useState<AdminLicense | null>(null);
   const [analyticsFilterOpen, setAnalyticsFilterOpen] = useState(false);
   const [analyticsFilter, setAnalyticsFilter] = useState<AnalyticsFilterValues | null>(null);
+  const [userDetailMember, setUserDetailMember] = useState<AdminWorkspaceMember | null>(null);
+  const [userDetailModalOpen, setUserDetailModalOpen] = useState(false);
+  const [selectedWorkspaceForSettings, setSelectedWorkspaceForSettings] =
+    useState<AdminWorkspace | null>(null);
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [selectedLicenseForInvoice, setSelectedLicenseForInvoice] = useState<AdminLicense | null>(null);
+  const [reportDownloadOpen, setReportDownloadOpen] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
 
   const { data: workspaces = [], isLoading: workspacesLoading } = useAdminWorkspaces();
   const { data: members = [], isLoading: membersLoading } = useAdminAllMembers();
+
+  useEffect(() => {
+    if (workspaces.length > 0 && !selectedWorkspaceForSettings) {
+      setSelectedWorkspaceForSettings(workspaces[0]);
+    }
+  }, [workspaces, selectedWorkspaceForSettings]);
   const { data: licenses = [], isLoading: licensesLoading } = useAdminLicenses();
   const { data: metrics = [], isLoading: metricsLoading } = useAdminAnalytics({
     workspace_id: analyticsFilter?.workspace_id || undefined,
@@ -159,6 +182,30 @@ export function Admin() {
     });
     return map;
   }, [workspaces]);
+
+  const filteredMembers = useMemo(() => {
+    if (!userSearch.trim()) return members;
+    const q = userSearch.trim().toLowerCase();
+    return members.filter(
+      (m) =>
+        m.user_id.toLowerCase().includes(q) ||
+        (workspaceByName[m.workspace_id]?.name ?? '').toLowerCase().includes(q) ||
+        m.role.toLowerCase().includes(q)
+    );
+  }, [members, userSearch, workspaceByName]);
+
+  const licenseSummary = useMemo(() => {
+    const now = new Date();
+    const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    let active = 0;
+    let expiringSoon = 0;
+    licenses.forEach((lic) => {
+      if (!lic.expiry_date || new Date(lic.expiry_date) >= now) active++;
+      if (lic.expiry_date && new Date(lic.expiry_date) <= in30Days && new Date(lic.expiry_date) >= now)
+        expiringSoon++;
+    });
+    return { total: licenses.length, active, expiringSoon };
+  }, [licenses]);
 
   const handleWorkspaceSubmit = (data: AdminWorkspaceInsert | AdminWorkspaceUpdate) => {
     if (editingWorkspace) {
@@ -239,116 +286,142 @@ export function Admin() {
         </TabsList>
 
         <TabsContent value="workspaces" className="space-y-4 mt-4">
-          <Card className="rounded-[10px] border-border shadow-[0_8px_16px_rgba(0,0,0,0.2)] p-3 sm:p-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-lg">Workspaces</CardTitle>
-              <Button
-                size="sm"
-                onClick={() => {
-                  setEditingWorkspace(null);
-                  setWorkspaceModalOpen(true);
-                }}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                Add workspace
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {workspacesLoading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-12 w-full rounded-lg" />
-                  <Skeleton className="h-12 w-full rounded-lg" />
-                  <Skeleton className="h-12 w-full rounded-lg" />
-                </div>
-              ) : workspaces.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-sm mb-4">
-                    No workspaces yet. Add one to manage users and licenses.
-                  </p>
-                  <Button onClick={() => setWorkspaceModalOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add workspace
-                  </Button>
-                </div>
-              ) : (
-                <ScrollArea className="h-[320px] pr-4">
-                  <ul className="space-y-2">
-                    {workspaces.map((ws) => (
-                      <li
-                        key={ws.id}
-                        className={cn(
-                          'flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-3 transition-all duration-200 hover:bg-secondary/50 hover:shadow-md'
-                        )}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium truncate">{ws.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {ws.active_users_count} active users
-                          </p>
-                        </div>
-                        <Badge variant={workspaceStatusVariants[ws.status]} className="shrink-0 ml-2">
-                          {ws.status}
-                        </Badge>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Actions</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setEditingWorkspace(ws);
-                                setWorkspaceModalOpen(true);
-                              }}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => {
-                                if (window.confirm('Delete this workspace? This will remove members and licenses.')) {
-                                  deleteWorkspaceMutation.mutate(ws.id);
-                                }
-                              }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </li>
-                    ))}
-                  </ul>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
+          <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
+            <Card className="rounded-[10px] border-border shadow-[0_8px_16px_rgba(0,0,0,0.2)] p-3 sm:p-4">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg">Workspaces</CardTitle>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingWorkspace(null);
+                    setWorkspaceModalOpen(true);
+                  }}
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add workspace
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {workspacesLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-12 w-full rounded-lg" />
+                    <Skeleton className="h-12 w-full rounded-lg" />
+                    <Skeleton className="h-12 w-full rounded-lg" />
+                  </div>
+                ) : workspaces.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground text-sm mb-4">
+                      No workspaces yet. Add one to manage users and licenses.
+                    </p>
+                    <Button onClick={() => setWorkspaceModalOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add workspace
+                    </Button>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[320px] pr-4">
+                    <ul className="space-y-2">
+                      {workspaces.map((ws) => (
+                        <li
+                          key={ws.id}
+                          className={cn(
+                            'flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-3 transition-all duration-200 hover:bg-secondary/50 hover:shadow-md',
+                            selectedWorkspaceForSettings?.id === ws.id && 'ring-2 ring-primary/50'
+                          )}
+                        >
+                          <button
+                            type="button"
+                            className="min-w-0 flex-1 text-left"
+                            onClick={() => setSelectedWorkspaceForSettings(ws)}
+                          >
+                            <p className="font-medium truncate">{ws.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {ws.active_users_count} active users
+                            </p>
+                          </button>
+                          <Badge variant={workspaceStatusVariants[ws.status]} className="shrink-0 ml-2">
+                            {ws.status}
+                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Actions</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingWorkspace(ws);
+                                  setWorkspaceModalOpen(true);
+                                }}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => {
+                                  if (window.confirm('Delete this workspace? This will remove members and licenses.')) {
+                                    deleteWorkspaceMutation.mutate(ws.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </li>
+                      ))}
+                    </ul>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+            <WorkspaceSettingsPanel
+              workspace={selectedWorkspaceForSettings ?? workspaces[0] ?? null}
+              onUpdate={(id, data) => updateWorkspaceMutation.mutate({ id, data })}
+              isSubmitting={updateWorkspaceMutation.isPending}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4 mt-4">
           <Card className="rounded-[10px] border-border shadow-[0_8px_16px_rgba(0,0,0,0.2)] p-3 sm:p-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between space-y-0 pb-2">
               <CardTitle className="text-lg">User Management</CardTitle>
-              <Button
-                size="sm"
-                onClick={() => {
-                  setEditingMember(null);
-                  setSelectedWorkspaceForUser(workspaces[0] ?? null);
-                  setUserFormOpen(true);
-                }}
-                disabled={workspaces.length === 0}
-              >
-                <UserPlus className="mr-1 h-4 w-4" />
-                Add user
-              </Button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                  <Input
+                    placeholder="Search by user ID, workspace, role…"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="pl-9 w-full sm:w-[240px] h-9 rounded-md border border-input bg-background text-sm focus-visible:ring-2 focus-visible:ring-[rgb(var(--ring))]"
+                    aria-label="Search users"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingMember(null);
+                    setSelectedWorkspaceForUser(workspaces[0] ?? null);
+                    setUserFormOpen(true);
+                  }}
+                  disabled={workspaces.length === 0}
+                  className="transition-transform hover:scale-[1.02]"
+                >
+                  <UserPlus className="mr-1 h-4 w-4" />
+                  Add user
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {membersLoading ? (
                 <div className="space-y-2">
+                  <Skeleton className="h-12 w-full rounded-lg" />
                   <Skeleton className="h-12 w-full rounded-lg" />
                   <Skeleton className="h-12 w-full rounded-lg" />
                 </div>
@@ -370,61 +443,110 @@ export function Admin() {
                   </Button>
                 </div>
               ) : (
-                <ScrollArea className="h-[320px] pr-4">
-                  <ul className="space-y-2">
-                    {members.map((m) => (
-                      <li
-                        key={m.id}
-                        className={cn(
-                          'flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-3 transition-all duration-200 hover:bg-secondary/50 hover:shadow-md'
+                <ScrollArea className="h-[360px] pr-4">
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <table className="w-full text-sm" role="grid" aria-label="User management table">
+                      <thead className="sticky top-0 z-10 bg-card border-b border-border">
+                        <tr>
+                          <th className="text-left font-medium text-muted-foreground px-3 py-3 h-12">
+                            User ID
+                          </th>
+                          <th className="text-left font-medium text-muted-foreground px-3 py-3 h-12 hidden sm:table-cell">
+                            Workspace
+                          </th>
+                          <th className="text-left font-medium text-muted-foreground px-3 py-3 h-12">
+                            Role
+                          </th>
+                          <th className="text-left font-medium text-muted-foreground px-3 py-3 h-12 hidden md:table-cell">
+                            Last login
+                          </th>
+                          <th className="text-right font-medium text-muted-foreground px-3 py-3 h-12 w-[100px]">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredMembers.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                              No users match your search.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredMembers.map((m) => (
+                            <tr
+                              key={m.id}
+                              className="border-b border-border last:border-0 bg-secondary/20 hover:bg-secondary/40 transition-colors"
+                            >
+                              <td className="px-3 py-3 font-mono text-xs truncate max-w-[140px]">
+                                {m.user_id.slice(0, 8)}…
+                              </td>
+                              <td className="px-3 py-3 text-muted-foreground hidden sm:table-cell truncate max-w-[120px]">
+                                {workspaceByName[m.workspace_id]?.name ?? m.workspace_id.slice(0, 8)}
+                              </td>
+                              <td className="px-3 py-3">
+                                <Badge variant={memberRoleVariants[m.role]} className="capitalize">
+                                  {m.role}
+                                </Badge>
+                              </td>
+                              <td className="px-3 py-3 text-muted-foreground hidden md:table-cell">
+                                —
+                              </td>
+                              <td className="px-3 py-3 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => {
+                                      setUserDetailMember(m);
+                                      setUserDetailModalOpen(true);
+                                    }}
+                                    aria-label="View user details"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Actions">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          setEditingMember(m);
+                                          setSelectedWorkspaceForUser(null);
+                                          setUserFormOpen(true);
+                                        }}
+                                      >
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Edit role
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        className="text-destructive focus:text-destructive"
+                                        onClick={() => {
+                                          if (window.confirm('Remove this user from the workspace?')) {
+                                            removeMemberMutation.mutate({
+                                              id: m.id,
+                                              workspaceId: m.workspace_id,
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Remove
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
                         )}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="font-mono text-sm truncate">{m.user_id}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {workspaceByName[m.workspace_id]?.name ?? m.workspace_id}
-                          </p>
-                        </div>
-                        <Badge variant={memberRoleVariants[m.role]} className="shrink-0 ml-2">
-                          {m.role}
-                        </Badge>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Actions</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setEditingMember(m);
-                                setSelectedWorkspaceForUser(null);
-                                setUserFormOpen(true);
-                              }}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit role
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => {
-                                if (window.confirm('Remove this user from the workspace?')) {
-                                  removeMemberMutation.mutate({
-                                    id: m.id,
-                                    workspaceId: m.workspace_id,
-                                  });
-                                }
-                              }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Remove
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </li>
-                    ))}
-                  </ul>
+                      </tbody>
+                    </table>
+                  </div>
                 </ScrollArea>
               )}
             </CardContent>
@@ -432,10 +554,59 @@ export function Admin() {
         </TabsContent>
 
         <TabsContent value="licenses" className="space-y-4 mt-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="rounded-[10px] border-border shadow-[0_8px_16px_rgba(0,0,0,0.2)] p-3 transition-all duration-200 hover:shadow-card-hover hover:scale-[1.02]">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total licenses</CardTitle>
+                <KeyRound className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{licenseSummary.total}</div>
+              </CardContent>
+            </Card>
+            <Card className="rounded-[10px] border-border shadow-[0_8px_16px_rgba(0,0,0,0.2)] p-3 transition-all duration-200 hover:shadow-card-hover hover:scale-[1.02]">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
+                <KeyRound className="h-4 w-4 text-success" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{licenseSummary.active}</div>
+              </CardContent>
+            </Card>
+            <Card className="rounded-[10px] border-border shadow-[0_8px_16px_rgba(0,0,0,0.2)] p-3 transition-all duration-200 hover:shadow-card-hover hover:scale-[1.02]">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Expiring soon</CardTitle>
+                <KeyRound className="h-4 w-4 text-warning" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{licenseSummary.expiringSoon}</div>
+              </CardContent>
+            </Card>
+            <Card className="rounded-[10px] border-border shadow-[0_8px_16px_rgba(0,0,0,0.2)] p-3 transition-all duration-200 hover:shadow-card-hover hover:scale-[1.02]">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Billing</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full transition-transform hover:scale-[1.02]"
+                  onClick={() => {
+                    setSelectedLicenseForInvoice(null);
+                    setInvoiceDialogOpen(true);
+                  }}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  View billing & invoices
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
           <Card className="rounded-[10px] border-border shadow-[0_8px_16px_rgba(0,0,0,0.2)] p-3 sm:p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-lg">License Management</CardTitle>
-              <Button size="sm" onClick={() => { setEditingLicense(null); setLicenseDialogOpen(true); }}>
+              <Button size="sm" onClick={() => { setEditingLicense(null); setLicenseDialogOpen(true); }} className="transition-transform hover:scale-[1.02]">
                 <Plus className="mr-1 h-4 w-4" />
                 Allocate license
               </Button>
@@ -492,6 +663,15 @@ export function Admin() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
                                 onClick={() => {
+                                  setSelectedLicenseForInvoice(lic);
+                                  setInvoiceDialogOpen(true);
+                                }}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                View billing
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
                                   setEditingLicense(lic);
                                   setLicenseDialogOpen(true);
                                 }}
@@ -523,14 +703,20 @@ export function Admin() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4 mt-4">
-          <div className="flex flex-row items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-muted-foreground text-sm">
               Sessions, run success rates, skill installs. Filter by workspace and date range.
             </p>
-            <Button variant="outline" size="sm" onClick={() => setAnalyticsFilterOpen(true)}>
-              <Filter className="mr-1 h-4 w-4" />
-              Filter
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setAnalyticsFilterOpen(true)} className="transition-transform hover:scale-[1.02]">
+                <Filter className="mr-1 h-4 w-4" />
+                Filter
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setReportDownloadOpen(true)} className="transition-transform hover:scale-[1.02]">
+                <Download className="mr-1 h-4 w-4" />
+                Download report
+              </Button>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -711,6 +897,46 @@ export function Admin() {
         onApply={setAnalyticsFilter}
         workspaces={workspaces}
         currentValues={analyticsFilter}
+      />
+      <AdminUserDetailModal
+        open={userDetailModalOpen}
+        onOpenChange={setUserDetailModalOpen}
+        member={userDetailMember}
+        workspace={userDetailMember ? workspaceByName[userDetailMember.workspace_id] ?? null : null}
+        onEdit={() => {
+          if (userDetailMember) {
+            setUserDetailModalOpen(false);
+            setEditingMember(userDetailMember);
+            setSelectedWorkspaceForUser(null);
+            setUserFormOpen(true);
+          }
+        }}
+        onRevoke={() => {
+          if (userDetailMember) {
+            removeMemberMutation.mutate({
+              id: userDetailMember.id,
+              workspaceId: userDetailMember.workspace_id,
+            });
+            setUserDetailMember(null);
+            setUserDetailModalOpen(false);
+          }
+        }}
+        isRevoking={removeMemberMutation.isPending}
+      />
+      <InvoiceDetailsDialog
+        open={invoiceDialogOpen}
+        onOpenChange={setInvoiceDialogOpen}
+        license={selectedLicenseForInvoice}
+        workspaceName={
+          selectedLicenseForInvoice
+            ? workspaceByName[selectedLicenseForInvoice.workspace_id]?.name ?? '—'
+            : undefined
+        }
+      />
+      <ReportDownloadDialog
+        open={reportDownloadOpen}
+        onOpenChange={setReportDownloadOpen}
+        workspaces={workspaces}
       />
     </div>
   );

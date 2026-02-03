@@ -12,6 +12,7 @@ import type {
   AdminAnalyticsMetric,
   AdminAnalyticsMetricInsert,
 } from '@/types/database';
+import type { Profile } from '@/types/database';
 
 const ADMIN_WORKSPACES = 'admin_workspaces';
 const ADMIN_WORKSPACE_MEMBERS = 'admin_workspace_members';
@@ -217,5 +218,16 @@ export const adminApi = {
       .single();
     if (error) throw new Error(error.message);
     return data as AdminAnalyticsMetric;
+  },
+
+  /** Fetch profile by user_id for admin user detail display (may be restricted by RLS). */
+  getProfileByUserId: async (userId: string): Promise<Profile | null> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) return null;
+    return data as Profile | null;
   },
 };
