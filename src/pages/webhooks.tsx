@@ -29,6 +29,7 @@ import {
   useHookScripts,
   useCreateWebhook,
   useDeleteWebhook,
+  useTestWebhook,
   useCreateHookScript,
   useUpdateHookScript,
   useDeleteHookScript,
@@ -37,6 +38,10 @@ import type { Webhook, HookScript } from '@/types/database';
 import { CreateWebhookModal, type CreateWebhookPayload } from '@/components/webhooks/create-webhook-modal';
 import { HookScriptEditorDialog } from '@/components/webhooks/hook-script-editor-dialog';
 import { PayloadTransformerSection } from '@/components/webhooks/payload-transformer-section';
+import { WebhookDeleteDialog } from '@/components/webhooks/webhook-delete-dialog';
+import { HookScriptDeleteDialog } from '@/components/webhooks/hook-script-delete-dialog';
+import { GmailPubSubWizard } from '@/components/webhooks/gmail-pubsub-wizard';
+import { SchedulingWebhooksNav } from '@/components/scheduling-webhooks-nav';
 import { toast } from 'sonner';
 
 export function Webhooks() {
@@ -44,19 +49,63 @@ export function Webhooks() {
   const [scriptDialogOpen, setScriptDialogOpen] = useState(false);
   const [editingScript, setEditingScript] = useState<HookScript | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [webhookDeleteOpen, setWebhookDeleteOpen] = useState(false);
+  const [webhookToDelete, setWebhookToDelete] = useState<Webhook | null>(null);
+  const [scriptDeleteOpen, setScriptDeleteOpen] = useState(false);
+  const [scriptToDelete, setScriptToDelete] = useState<HookScript | null>(null);
+  const [testingWebhookId, setTestingWebhookId] = useState<string | null>(null);
 
   const { data: webhooks = [], isLoading: webhooksLoading } = useWebhooks();
   const { data: hookScripts = [], isLoading: scriptsLoading } = useHookScripts(null);
 
   const createWebhook = useCreateWebhook();
   const deleteWebhook = useDeleteWebhook();
+  const testWebhook = useTestWebhook();
   const createHookScript = useCreateHookScript();
   const updateHookScript = useUpdateHookScript();
   const deleteHookScript = useDeleteHookScript();
 
   const handleCreateWebhook = async (payload: CreateWebhookPayload) => {
-    await createWebhook.mutateAsync(payload);
+    await createWebhook.mutateAsync({
+      ...payload,
+      rate_limit: payload.rate_limit ?? null,
+    });
     setCreateModalOpen(false);
+  };
+
+  const handleDeleteWebhookClick = (w: Webhook) => {
+    setWebhookToDelete(w);
+    setWebhookDeleteOpen(true);
+  };
+
+  const handleDeleteWebhookConfirm = (id: string) => {
+    deleteWebhook.mutate(id, {
+      onSuccess: () => {
+        setWebhookDeleteOpen(false);
+        setWebhookToDelete(null);
+      },
+    });
+  };
+
+  const handleTestWebhook = (w: Webhook) => {
+    setTestingWebhookId(w.id);
+    testWebhook.mutate(w.id, {
+      onSettled: () => setTestingWebhookId(null),
+    });
+  };
+
+  const handleDeleteScriptClick = (s: HookScript) => {
+    setScriptToDelete(s);
+    setScriptDeleteOpen(true);
+  };
+
+  const handleDeleteScriptConfirm = (id: string) => {
+    deleteHookScript.mutate(id, {
+      onSuccess: () => {
+        setScriptDeleteOpen(false);
+        setScriptToDelete(null);
+      },
+    });
   };
 
   const handleCopyUrl = (url: string) => {
@@ -117,6 +166,7 @@ export function Webhooks() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <SchedulingWebhooksNav />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Webhooks & Hooks</h1>
         <Button onClick={() => setCreateModalOpen(true)}>
@@ -182,6 +232,9 @@ export function Webhooks() {
                             </p>
                             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                               <span className="font-mono">Token: {w.token_preview}</span>
+                              {w.rate_limit != null && (
+                                <span>Rate limit: {w.rate_limit}/min</span>
+                              )}
                               {w.last_received_at && (
                                 <span className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
@@ -192,13 +245,27 @@ export function Webhooks() {
                                 </span>
                               )}
                             </div>
-                            {w.mapping_template && (
-                              <Badge variant="secondary" className="mt-2">
-                                Mapping
-                              </Badge>
-                            )}
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {w.mapping_template && (
+                                <Badge variant="secondary">Mapping</Badge>
+                              )}
+                            </div>
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleTestWebhook(w)}
+                              disabled={testWebhook.isPending && testingWebhookId === w.id}
+                              className="transition-transform hover:scale-[1.02]"
+                              aria-label="Test webhook"
+                            >
+                              {testWebhook.isPending && testingWebhookId === w.id ? (
+                                <span className="animate-pulse">Testing…</span>
+                              ) : (
+                                'Test'
+                              )}
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -222,11 +289,7 @@ export function Webhooks() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   className="text-destructive focus:text-destructive"
-                                  onClick={() => {
-                                    if (window.confirm('Remove this webhook?')) {
-                                      deleteWebhook.mutate(w.id);
-                                    }
-                                  }}
+                                  onClick={() => handleDeleteWebhookClick(w)}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Remove
@@ -310,11 +373,7 @@ export function Webhooks() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => {
-                              if (window.confirm('Remove this hook script?')) {
-                                deleteHookScript.mutate(s.id);
-                              }
-                            }}
+                            onClick={() => handleDeleteScriptClick(s)}
                             aria-label="Remove script"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -348,15 +407,7 @@ export function Webhooks() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-12 text-center">
-                <Mail className="mb-4 h-12 w-12 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Gmail Pub/Sub setup will be available here. Create a webhook first, then link it to Gmail.
-                </p>
-                <Button className="mt-4" variant="outline" disabled>
-                  Coming soon
-                </Button>
-              </div>
+              <GmailPubSubWizard />
             </CardContent>
           </Card>
         </TabsContent>
@@ -379,6 +430,22 @@ export function Webhooks() {
         isSubmitting={createHookScript.isPending || updateHookScript.isPending}
         script={editingScript}
         webhooks={webhooks}
+      />
+
+      <WebhookDeleteDialog
+        webhook={webhookToDelete}
+        open={webhookDeleteOpen}
+        onOpenChange={setWebhookDeleteOpen}
+        onConfirm={handleDeleteWebhookConfirm}
+        isDeleting={deleteWebhook.isPending}
+      />
+
+      <HookScriptDeleteDialog
+        script={scriptToDelete}
+        open={scriptDeleteOpen}
+        onOpenChange={setScriptDeleteOpen}
+        onConfirm={handleDeleteScriptConfirm}
+        isDeleting={deleteHookScript.isPending}
       />
     </div>
   );

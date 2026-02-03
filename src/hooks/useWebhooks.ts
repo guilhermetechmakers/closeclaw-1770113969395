@@ -20,6 +20,8 @@ export const WEBHOOKS_KEYS = {
     [...WEBHOOKS_KEYS.all, 'hookScripts', webhookId] as const,
   payloadTemplate: (webhookId: string) =>
     [...WEBHOOKS_KEYS.all, 'payloadTemplate', webhookId] as const,
+  gmailPubSubSettings: () => [...WEBHOOKS_KEYS.all, 'gmailPubSubSettings'] as const,
+  gmailPubSubSetting: (id: string) => [...WEBHOOKS_KEYS.all, 'gmailPubSubSetting', id] as const,
 };
 
 export function useWebhooks() {
@@ -44,6 +46,7 @@ export function useCreateWebhook() {
       route_name: string;
       mapping_template?: string | null;
       delivery_route?: string | null;
+      rate_limit?: number | null;
     }) => webhooksApi.createWebhook(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: WEBHOOKS_KEYS.list() });
@@ -81,6 +84,21 @@ export function useDeleteWebhook() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to remove webhook');
+    },
+  });
+}
+
+export function useTestWebhook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => webhooksApi.testWebhook(id),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: WEBHOOKS_KEYS.list() });
+      if (result.ok) toast.success(result.message ?? 'Test request sent');
+      else toast.error(result.message ?? 'Test failed');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Test failed');
     },
   });
 }
@@ -192,6 +210,82 @@ export function useUpdatePayloadTemplate() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to update payload template');
+    },
+  });
+}
+
+// Gmail Pub/Sub settings
+export function useGmailPubSubSettings() {
+  return useQuery({
+    queryKey: WEBHOOKS_KEYS.gmailPubSubSettings(),
+    queryFn: () => safeGet(() => webhooksApi.getGmailPubSubSettings(), []),
+  });
+}
+
+export function useGmailPubSubSetting(id: string | null) {
+  return useQuery({
+    queryKey: WEBHOOKS_KEYS.gmailPubSubSetting(id ?? ''),
+    queryFn: () => (id ? webhooksApi.getGmailPubSubSetting(id) : Promise.resolve(null)),
+    enabled: !!id,
+  });
+}
+
+export function useCreateGmailPubSubSetting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name?: string; configuration_details?: Record<string, unknown>; is_active?: boolean }) =>
+      webhooksApi.createGmailPubSubSetting(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: WEBHOOKS_KEYS.gmailPubSubSettings() });
+      toast.success('Gmail Pub/Sub setting created');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to create Gmail Pub/Sub setting');
+    },
+  });
+}
+
+export function useUpdateGmailPubSubSetting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof webhooksApi.updateGmailPubSubSetting>[1] }) =>
+      webhooksApi.updateGmailPubSubSetting(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: WEBHOOKS_KEYS.gmailPubSubSettings() });
+      queryClient.invalidateQueries({ queryKey: WEBHOOKS_KEYS.gmailPubSubSetting(id) });
+      toast.success('Gmail Pub/Sub setting updated');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update Gmail Pub/Sub setting');
+    },
+  });
+}
+
+export function useDeleteGmailPubSubSetting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => webhooksApi.deleteGmailPubSubSetting(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: WEBHOOKS_KEYS.gmailPubSubSettings() });
+      toast.success('Gmail Pub/Sub setting removed');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to remove Gmail Pub/Sub setting');
+    },
+  });
+}
+
+export function useTestGmailPubSubSetting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => webhooksApi.testGmailPubSubSetting(id),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: WEBHOOKS_KEYS.gmailPubSubSettings() });
+      if (result.ok) toast.success(result.message ?? 'Test sent');
+      else toast.error(result.message ?? 'Test failed');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Test failed');
     },
   });
 }

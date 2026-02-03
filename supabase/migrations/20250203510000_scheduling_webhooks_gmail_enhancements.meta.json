@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203510000_scheduling_webhooks_gmail_enhancements",
+  "created_at": "2025-02-03T00:00:00Z",
+  "description": "Add rate_limit to webhooks; execution_status and last_execution_time to hook_scripts; create gmail_pubsub_settings table",
+  "tables_created": ["gmail_pubsub_settings"],
+  "tables_modified": ["webhooks", "hook_scripts"],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "ALTER TABLE webhooks DROP COLUMN IF EXISTS rate_limit; ALTER TABLE hook_scripts DROP COLUMN IF EXISTS execution_status; ALTER TABLE hook_scripts DROP COLUMN IF EXISTS last_execution_time; DROP TABLE IF EXISTS gmail_pubsub_settings CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

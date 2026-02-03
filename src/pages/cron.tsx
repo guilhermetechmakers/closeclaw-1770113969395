@@ -34,6 +34,7 @@ import type { CronJob } from '@/types/database';
 import { CronJobFormModal } from '@/components/dashboard/cron-job-form-modal';
 import { CronJobDeleteDialog } from '@/components/dashboard/cron-job-delete-dialog';
 import { CronRunHistoryViewer } from '@/components/dashboard/cron-run-history-viewer';
+import { SchedulingWebhooksNav } from '@/components/scheduling-webhooks-nav';
 import type { CronJobInsert, CronJobUpdate } from '@/types/database';
 
 export function Cron() {
@@ -117,6 +118,7 @@ export function Cron() {
 
   return (
     <div className="mx-auto max-w-content space-y-6 animate-fade-in-up">
+      <SchedulingWebhooksNav />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Cron Jobs & Scheduler</h1>
         <Button

@@ -63,6 +63,11 @@ export interface Database {
       webhooks: { Row: Webhook; Insert: WebhookInsert; Update: WebhookUpdate };
       hook_scripts: { Row: HookScript; Insert: HookScriptInsert; Update: HookScriptUpdate };
       payload_templates: { Row: PayloadTemplate; Insert: PayloadTemplateInsert; Update: PayloadTemplateUpdate };
+      gmail_pubsub_settings: {
+        Row: GmailPubSubSetting;
+        Insert: GmailPubSubSettingInsert;
+        Update: GmailPubSubSettingUpdate;
+      };
       logs: { Row: Log; Insert: LogInsert };
       run_traces: { Row: RunTrace; Insert: RunTraceInsert; Update: RunTraceUpdate };
       log_retention_settings: {
@@ -462,6 +467,7 @@ export interface Webhook {
   last_received_at: string | null;
   mapping_template: string | null;
   delivery_route: string | null;
+  rate_limit: number | null;
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
@@ -477,6 +483,7 @@ export interface WebhookInsert {
   last_received_at?: string | null;
   mapping_template?: string | null;
   delivery_route?: string | null;
+  rate_limit?: number | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -488,10 +495,13 @@ export interface WebhookUpdate {
   last_received_at?: string | null;
   mapping_template?: string | null;
   delivery_route?: string | null;
+  rate_limit?: number | null;
   metadata?: Record<string, unknown>;
 }
 
 export type HookScriptLanguage = 'javascript' | 'python';
+
+export type HookScriptExecutionStatus = 'idle' | 'success' | 'failed' | 'running';
 
 export interface HookScript {
   id: string;
@@ -500,6 +510,8 @@ export interface HookScript {
   event_trigger: string;
   script_content: string;
   language: HookScriptLanguage;
+  execution_status: HookScriptExecutionStatus | null;
+  last_execution_time: string | null;
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
@@ -512,6 +524,8 @@ export interface HookScriptInsert {
   event_trigger: string;
   script_content?: string;
   language?: HookScriptLanguage;
+  execution_status?: HookScriptExecutionStatus | null;
+  last_execution_time?: string | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -520,6 +534,8 @@ export interface HookScriptUpdate {
   event_trigger?: string;
   script_content?: string;
   language?: HookScriptLanguage;
+  execution_status?: HookScriptExecutionStatus | null;
+  last_execution_time?: string | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -543,6 +559,38 @@ export interface PayloadTemplateInsert {
 
 export interface PayloadTemplateUpdate {
   template_content?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// ========== Gmail Pub/Sub ==========
+
+export interface GmailPubSubSetting {
+  id: string;
+  user_id: string;
+  name: string;
+  configuration_details: Record<string, unknown>;
+  is_active: boolean;
+  last_tested_at: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GmailPubSubSettingInsert {
+  id?: string;
+  user_id: string;
+  name?: string;
+  configuration_details?: Record<string, unknown>;
+  is_active?: boolean;
+  last_tested_at?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface GmailPubSubSettingUpdate {
+  name?: string;
+  configuration_details?: Record<string, unknown>;
+  is_active?: boolean;
+  last_tested_at?: string | null;
   metadata?: Record<string, unknown>;
 }
 

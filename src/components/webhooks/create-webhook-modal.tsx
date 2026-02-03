@@ -20,6 +20,18 @@ const createWebhookSchema = z.object({
     .regex(/^[a-z0-9_-]+$/i, 'Use only letters, numbers, hyphens, and underscores'),
   mapping_template: z.string().optional(),
   delivery_route: z.string().optional(),
+  rate_limit: z
+    .union([
+      z.string().transform((v) => (v === '' ? null : Number(v))),
+      z.number().int().positive().nullable(),
+    ])
+    .optional()
+    .nullable()
+    .refine(
+      (v) =>
+        v == null || (typeof v === 'number' && Number.isInteger(v) && v > 0),
+      'Rate limit must be a positive integer'
+    ),
 });
 
 type CreateWebhookValues = z.infer<typeof createWebhookSchema>;
@@ -28,6 +40,7 @@ export interface CreateWebhookPayload {
   route_name: string;
   mapping_template?: string | null;
   delivery_route?: string | null;
+  rate_limit?: number | null;
 }
 
 interface CreateWebhookModalProps {
@@ -41,6 +54,7 @@ const defaultValues: CreateWebhookValues = {
   route_name: '',
   mapping_template: '',
   delivery_route: '',
+  rate_limit: null,
 };
 
 export function CreateWebhookModal({
@@ -64,6 +78,7 @@ export function CreateWebhookModal({
       route_name: data.route_name.trim(),
       mapping_template: data.mapping_template?.trim() || null,
       delivery_route: data.delivery_route?.trim() || null,
+      rate_limit: data.rate_limit ?? null,
     });
     reset(defaultValues);
   };
@@ -106,6 +121,19 @@ export function CreateWebhookModal({
               placeholder="e.g. session or channel target"
               {...register('delivery_route')}
             />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="rate_limit">Rate limit (optional, requests/min)</Label>
+            <Input
+              id="rate_limit"
+              type="number"
+              min={1}
+              placeholder="e.g. 60"
+              {...register('rate_limit')}
+            />
+            {errors.rate_limit && (
+              <p className="text-xs text-destructive">{errors.rate_limit.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="mapping_template">Mapping template (optional)</Label>
