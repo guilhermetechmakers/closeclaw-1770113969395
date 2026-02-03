@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203700000_create_terms_user_agreements_feedback",
+  "created_at": "2025-02-03T00:00:00Z",
+  "description": "Creates user_agreements and terms_decline_feedback tables for Terms of Service acceptance/decline and feedback",
+  "tables_created": ["user_agreements", "terms_decline_feedback"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS terms_decline_feedback CASCADE; DROP TABLE IF EXISTS user_agreements CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

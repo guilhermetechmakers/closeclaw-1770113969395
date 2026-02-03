@@ -141,6 +141,17 @@ export function Signup() {
                 </Button>
               </form>
               <p className="text-center text-sm text-muted-foreground">
+                By signing up you agree to our{' '}
+                <Link to="/terms" className="font-medium text-primary underline-offset-4 hover:underline">
+                  Terms of Service
+                </Link>
+                {' '}and{' '}
+                <Link to="/privacy" className="font-medium text-primary underline-offset-4 hover:underline">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+              <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link to="/login" className="font-medium text-primary underline-offset-4 hover:underline">
                   Log in

@@ -94,6 +94,16 @@ export interface Database {
         Insert: PolicyDocumentInsert;
         Update: PolicyDocumentUpdate;
       };
+      user_agreements: {
+        Row: UserAgreement;
+        Insert: UserAgreementInsert;
+        Update: UserAgreementUpdate;
+      };
+      terms_decline_feedback: {
+        Row: TermsDeclineFeedback;
+        Insert: TermsDeclineFeedbackInsert;
+        Update: never;
+      };
       error_logs: {
         Row: ErrorLog;
         Insert: ErrorLogInsert;
@@ -1873,6 +1883,48 @@ export interface PolicyDocumentUpdate {
   version?: string;
   content?: string;
   effective_date?: string;
+}
+
+// ========== Terms of Service – User Agreements & Decline Feedback ==========
+
+export type UserAgreementStatus = 'accepted' | 'declined';
+
+export interface UserAgreement {
+  id: string;
+  user_id: string;
+  policy_document_id: string;
+  status: UserAgreementStatus;
+  agreed_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserAgreementInsert {
+  id?: string;
+  user_id: string;
+  policy_document_id: string;
+  status: UserAgreementStatus;
+  agreed_at?: string;
+}
+
+export interface UserAgreementUpdate {
+  status?: UserAgreementStatus;
+  agreed_at?: string;
+}
+
+export interface TermsDeclineFeedback {
+  id: string;
+  user_id: string;
+  user_agreement_id: string | null;
+  comments: string;
+  created_at: string;
+}
+
+export interface TermsDeclineFeedbackInsert {
+  id?: string;
+  user_id: string;
+  user_agreement_id?: string | null;
+  comments: string;
 }
 
 // ========== Secrets & Keychain ==========
