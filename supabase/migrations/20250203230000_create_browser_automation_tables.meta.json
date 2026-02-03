@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203230000_create_browser_automation_tables",
+  "created_at": "2025-02-03T23:00:00Z",
+  "description": "Browser automation: browser_profiles, browser_tabs, browser_scripts, browser_capture_records, browser_cdp_tokens",
+  "tables_created": ["browser_profiles", "browser_tabs", "browser_scripts", "browser_capture_records", "browser_cdp_tokens"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS browser_cdp_tokens CASCADE; DROP TABLE IF EXISTS browser_capture_records CASCADE; DROP TABLE IF EXISTS browser_scripts CASCADE; DROP TABLE IF EXISTS browser_tabs CASCADE; DROP TABLE IF EXISTS browser_profiles CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

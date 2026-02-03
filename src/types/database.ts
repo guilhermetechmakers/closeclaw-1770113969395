@@ -42,6 +42,11 @@ export interface Database {
       channels: { Row: Channel; Insert: ChannelInsert; Update: ChannelUpdate };
       adapter_configurations: { Row: AdapterConfiguration; Insert: AdapterConfigurationInsert; Update: AdapterConfigurationUpdate };
       delivery_logs: { Row: DeliveryLog; Insert: DeliveryLogInsert };
+      browser_profiles: { Row: BrowserProfile; Insert: BrowserProfileInsert; Update: BrowserProfileUpdate };
+      browser_tabs: { Row: BrowserTab; Insert: BrowserTabInsert; Update: BrowserTabUpdate };
+      browser_scripts: { Row: BrowserScript; Insert: BrowserScriptInsert; Update: BrowserScriptUpdate };
+      browser_capture_records: { Row: BrowserCaptureRecord; Insert: BrowserCaptureRecordInsert };
+      browser_cdp_tokens: { Row: BrowserCdpToken; Insert: BrowserCdpTokenInsert; Update: BrowserCdpTokenUpdate };
     };
   };
 }
@@ -582,4 +587,157 @@ export interface SecuritySettingInsert {
 export interface SecuritySettingUpdate {
   two_factor_enabled?: boolean;
   keychain_integration_enabled?: boolean;
+}
+
+// ========== Browser Automation ==========
+
+export type BrowserProfileStatus = 'running' | 'stopped' | 'starting' | 'stopping' | 'error';
+
+export interface BrowserProfile {
+  id: string;
+  user_id: string;
+  status: BrowserProfileStatus;
+  footprint_path: string | null;
+  is_isolated: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BrowserProfileInsert {
+  id?: string;
+  user_id: string;
+  status?: BrowserProfileStatus;
+  footprint_path?: string | null;
+  is_isolated?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface BrowserProfileUpdate {
+  status?: BrowserProfileStatus;
+  footprint_path?: string | null;
+  is_isolated?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface BrowserTab {
+  id: string;
+  browser_profile_id: string;
+  external_id: string | null;
+  url: string;
+  title: string | null;
+  snapshot_url: string | null;
+  snapshot_data: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BrowserTabInsert {
+  id?: string;
+  browser_profile_id: string;
+  external_id?: string | null;
+  url?: string;
+  title?: string | null;
+  snapshot_url?: string | null;
+  snapshot_data?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface BrowserTabUpdate {
+  url?: string;
+  title?: string | null;
+  snapshot_url?: string | null;
+  snapshot_data?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export type BrowserScriptStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+export interface BrowserScript {
+  id: string;
+  user_id: string;
+  name: string;
+  execution_status: BrowserScriptStatus;
+  script_content: string | null;
+  last_run_at: string | null;
+  last_run_log: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BrowserScriptInsert {
+  id?: string;
+  user_id: string;
+  name: string;
+  execution_status?: BrowserScriptStatus;
+  script_content?: string | null;
+  last_run_at?: string | null;
+  last_run_log?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface BrowserScriptUpdate {
+  name?: string;
+  execution_status?: BrowserScriptStatus;
+  script_content?: string | null;
+  last_run_at?: string | null;
+  last_run_log?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export type BrowserCaptureType = 'screenshot' | 'pdf' | 'dom';
+
+export interface BrowserCaptureRecord {
+  id: string;
+  browser_profile_id: string;
+  capture_type: BrowserCaptureType;
+  file_path: string | null;
+  file_url: string | null;
+  tab_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface BrowserCaptureRecordInsert {
+  id?: string;
+  browser_profile_id: string;
+  capture_type: BrowserCaptureType;
+  file_path?: string | null;
+  file_url?: string | null;
+  tab_id?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export type BrowserCdpConnectionType = 'local' | 'node_proxy';
+
+export interface BrowserCdpToken {
+  id: string;
+  user_id: string;
+  browser_profile_id: string | null;
+  connection_type: BrowserCdpConnectionType;
+  token_preview: string | null;
+  config_json: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BrowserCdpTokenInsert {
+  id?: string;
+  user_id: string;
+  browser_profile_id?: string | null;
+  connection_type?: BrowserCdpConnectionType;
+  token_preview?: string | null;
+  config_json?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface BrowserCdpTokenUpdate {
+  browser_profile_id?: string | null;
+  connection_type?: BrowserCdpConnectionType;
+  token_preview?: string | null;
+  config_json?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
