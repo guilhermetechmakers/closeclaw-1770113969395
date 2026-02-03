@@ -1,0 +1,18 @@
+{
+  "migration_name": "20250203530000_create_settings_tables",
+  "created_at": "2025-02-03T53:00:00Z",
+  "description": "Settings/Preferences tables: network, remote access, secrets prefs, tool policies, model defaults",
+  "tables_created": [
+    "network_settings",
+    "remote_access",
+    "settings_secrets_prefs",
+    "tool_policies",
+    "model_defaults"
+  ],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS model_defaults CASCADE; DROP TABLE IF EXISTS tool_policies CASCADE; DROP TABLE IF EXISTS settings_secrets_prefs CASCADE; DROP TABLE IF EXISTS remote_access CASCADE; DROP TABLE IF EXISTS network_settings CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

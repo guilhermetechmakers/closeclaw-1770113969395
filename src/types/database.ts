@@ -187,6 +187,31 @@ export interface Database {
         Insert: HelpChangelogEntryInsert;
         Update: HelpChangelogEntryUpdate;
       };
+      network_settings: {
+        Row: NetworkSetting;
+        Insert: NetworkSettingInsert;
+        Update: NetworkSettingUpdate;
+      };
+      remote_access: {
+        Row: RemoteAccess;
+        Insert: RemoteAccessInsert;
+        Update: RemoteAccessUpdate;
+      };
+      settings_secrets_prefs: {
+        Row: SettingsSecretsPref;
+        Insert: SettingsSecretsPrefInsert;
+        Update: SettingsSecretsPrefUpdate;
+      };
+      tool_policies: {
+        Row: ToolPolicy;
+        Insert: ToolPolicyInsert;
+        Update: ToolPolicyUpdate;
+      };
+      model_defaults: {
+        Row: ModelDefault;
+        Insert: ModelDefaultInsert;
+        Update: ModelDefaultUpdate;
+      };
     };
   };
 }
@@ -2307,4 +2332,123 @@ export interface HelpChangelogEntryUpdate {
   version_number?: string | null;
   date?: string;
   description?: string;
+}
+
+// ========== Settings / Preferences (gateway configuration) ==========
+
+export interface NetworkSetting {
+  id: string;
+  user_id: string;
+  bind_address: string;
+  port: number;
+  tls_options: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NetworkSettingInsert {
+  id?: string;
+  user_id: string;
+  bind_address?: string;
+  port?: number;
+  tls_options?: Record<string, unknown>;
+}
+
+export interface NetworkSettingUpdate {
+  bind_address?: string;
+  port?: number;
+  tls_options?: Record<string, unknown>;
+}
+
+export interface RemoteAccess {
+  id: string;
+  user_id: string;
+  tailnet_config: Record<string, unknown>;
+  relay_settings: Record<string, unknown>;
+  pairing_policies: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RemoteAccessInsert {
+  id?: string;
+  user_id: string;
+  tailnet_config?: Record<string, unknown>;
+  relay_settings?: Record<string, unknown>;
+  pairing_policies?: Record<string, unknown>;
+}
+
+export interface RemoteAccessUpdate {
+  tailnet_config?: Record<string, unknown>;
+  relay_settings?: Record<string, unknown>;
+  pairing_policies?: Record<string, unknown>;
+}
+
+export interface SettingsSecretsPref {
+  id: string;
+  user_id: string;
+  os_keychain_enabled: boolean;
+  onepassword_integration: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SettingsSecretsPrefInsert {
+  id?: string;
+  user_id: string;
+  os_keychain_enabled?: boolean;
+  onepassword_integration?: boolean;
+}
+
+export interface SettingsSecretsPrefUpdate {
+  os_keychain_enabled?: boolean;
+  onepassword_integration?: boolean;
+}
+
+export interface ToolPolicy {
+  id: string;
+  user_id: string;
+  exec_allowlist: string[];
+  sandbox_mode: boolean;
+  docker_config: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ToolPolicyInsert {
+  id?: string;
+  user_id: string;
+  exec_allowlist?: string[];
+  sandbox_mode?: boolean;
+  docker_config?: Record<string, unknown>;
+}
+
+export interface ToolPolicyUpdate {
+  exec_allowlist?: string[];
+  sandbox_mode?: boolean;
+  docker_config?: Record<string, unknown>;
+}
+
+export interface ModelDefault {
+  id: string;
+  user_id: string;
+  provider_priority: string[];
+  failover_rules: Record<string, unknown>;
+  usage_caps: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ModelDefaultInsert {
+  id?: string;
+  user_id: string;
+  provider_priority?: string[];
+  failover_rules?: Record<string, unknown>;
+  usage_caps?: Record<string, unknown>;
+}
+
+export interface ModelDefaultUpdate {
+  provider_priority?: string[];
+  failover_rules?: Record<string, unknown>;
+  usage_caps?: Record<string, unknown>;
 }
