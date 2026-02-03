@@ -22,6 +22,7 @@ import { Cron } from '@/pages/cron';
 import { Webhooks } from '@/pages/webhooks';
 import { ModelProviders } from '@/pages/model-providers';
 import { Browser } from '@/pages/browser';
+import { ToolSkillRuntime } from '@/pages/tool-skill-runtime';
 import { Voice } from '@/pages/voice';
 import { Settings } from '@/pages/settings';
 import { Secrets } from '@/pages/secrets';
@@ -82,6 +83,7 @@ export default function App() {
                 <Route path="/webhooks" element={<Webhooks />} />
                 <Route path="/model-providers" element={<ModelProviders />} />
                 <Route path="/browser" element={<Browser />} />
+                <Route path="/tool-skill-runtime" element={<ToolSkillRuntime />} />
                 <Route path="/voice" element={<Voice />} />
                 <Route path="/secrets" element={<Secrets />} />
                 <Route path="/settings" element={<Settings />} />

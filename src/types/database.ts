@@ -218,6 +218,25 @@ export interface Database {
         Insert: ToolPolicyInsert;
         Update: ToolPolicyUpdate;
       };
+      runtime_tools: {
+        Row: RuntimeTool;
+        Insert: RuntimeToolInsert;
+        Update: RuntimeToolUpdate;
+      };
+      runtime_runs: {
+        Row: RuntimeRun;
+        Insert: RuntimeRunInsert;
+        Update: RuntimeRunUpdate;
+      };
+      runtime_outputs: {
+        Row: RuntimeOutput;
+        Insert: RuntimeOutputInsert;
+      };
+      runtime_feedback: {
+        Row: RuntimeFeedback;
+        Insert: RuntimeFeedbackInsert;
+        Update: RuntimeFeedbackUpdate;
+      };
       model_defaults: {
         Row: ModelDefault;
         Insert: ModelDefaultInsert;
@@ -2538,4 +2557,117 @@ export interface ModelDefaultUpdate {
   provider_priority?: string[];
   failover_rules?: Record<string, unknown>;
   usage_caps?: Record<string, unknown>;
+}
+
+// ========== Tool & Skill Runtime ==========
+
+export type RuntimeToolType = 'browser' | 'executable' | 'web_app' | 'media_player' | 'custom';
+export type RuntimeToolStatus = 'active' | 'archived' | 'disabled';
+
+export interface RuntimeTool {
+  id: string;
+  user_id: string;
+  name: string;
+  tool_type: RuntimeToolType;
+  parameters: Record<string, unknown>;
+  policy_criteria: Record<string, unknown>;
+  status: RuntimeToolStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RuntimeToolInsert {
+  id?: string;
+  user_id: string;
+  name: string;
+  tool_type: RuntimeToolType;
+  parameters?: Record<string, unknown>;
+  policy_criteria?: Record<string, unknown>;
+  status?: RuntimeToolStatus;
+}
+
+export interface RuntimeToolUpdate {
+  name?: string;
+  tool_type?: RuntimeToolType;
+  parameters?: Record<string, unknown>;
+  policy_criteria?: Record<string, unknown>;
+  status?: RuntimeToolStatus;
+}
+
+export type RuntimeRunStatus = 'pending' | 'running' | 'completed' | 'failed' | 'aborted';
+
+export interface RuntimeRun {
+  id: string;
+  user_id: string;
+  tool_id: string | null;
+  skill_id: string | null;
+  environment_snapshot: Record<string, unknown>;
+  started_at: string;
+  ended_at: string | null;
+  status: RuntimeRunStatus;
+  policy_compliant: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RuntimeRunInsert {
+  id?: string;
+  user_id: string;
+  tool_id?: string | null;
+  skill_id?: string | null;
+  environment_snapshot?: Record<string, unknown>;
+  started_at?: string;
+  ended_at?: string | null;
+  status?: RuntimeRunStatus;
+  policy_compliant?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface RuntimeRunUpdate {
+  ended_at?: string | null;
+  status?: RuntimeRunStatus;
+  policy_compliant?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export type RuntimeOutputFormat = 'json' | 'text' | 'log' | 'binary_ref';
+
+export interface RuntimeOutput {
+  id: string;
+  run_id: string;
+  emitted_at: string;
+  output_data: Record<string, unknown>;
+  output_format: RuntimeOutputFormat;
+  created_at: string;
+}
+
+export interface RuntimeOutputInsert {
+  id?: string;
+  run_id: string;
+  emitted_at?: string;
+  output_data?: Record<string, unknown>;
+  output_format?: RuntimeOutputFormat;
+}
+
+export interface RuntimeFeedback {
+  id: string;
+  user_id: string;
+  run_id: string;
+  rating: number | null;
+  comment: string | null;
+  created_at: string;
+}
+
+export interface RuntimeFeedbackInsert {
+  id?: string;
+  user_id: string;
+  run_id: string;
+  rating?: number | null;
+  comment?: string | null;
+}
+
+export interface RuntimeFeedbackUpdate {
+  rating?: number | null;
+  comment?: string | null;
 }

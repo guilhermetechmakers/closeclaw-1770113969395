@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203800000_create_tool_skill_runtime_tables",
+  "created_at": "2025-02-03T38:00:00Z",
+  "description": "Tool & Skill Runtime: runtime_tools, runtime_runs, runtime_outputs, runtime_feedback",
+  "tables_created": ["runtime_tools", "runtime_runs", "runtime_outputs", "runtime_feedback"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS runtime_feedback CASCADE; DROP TABLE IF EXISTS runtime_outputs CASCADE; DROP TABLE IF EXISTS runtime_runs CASCADE; DROP TABLE IF EXISTS runtime_tools CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

@@ -18,6 +18,7 @@ import {
   ChevronRight,
   User,
   ShoppingBag,
+  Wrench,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,7 @@ const navItems = [
   { to: '/channels', label: 'Channels & Adapters', icon: Plug },
   { to: '/skills', label: 'Skills Library', icon: BookOpen },
   { to: '/skill-editor', label: 'Skill Editor', icon: FileText },
+  { to: '/tool-skill-runtime', label: 'Tool & Skill Runtime', icon: Wrench },
   { to: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
   { to: '/nodes', label: 'Nodes', icon: Cpu },
   { to: '/cron', label: 'Cron Jobs', icon: Calendar },
