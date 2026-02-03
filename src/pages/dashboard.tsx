@@ -499,7 +499,11 @@ export function Dashboard() {
       <CronJobFormModal
         open={cronFormOpen}
         onOpenChange={setCronFormOpen}
-        onSubmit={(data) => createCronJobMutation.mutate(data)}
+        onSubmit={(data) => {
+          if ('user_id' in data && data.user_id !== undefined) {
+            createCronJobMutation.mutate(data);
+          }
+        }}
         isSubmitting={createCronJobMutation.isPending}
         userId={userId}
       />

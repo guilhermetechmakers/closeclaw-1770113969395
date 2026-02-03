@@ -34,6 +34,7 @@ export interface Database {
       activities: { Row: Activity; Insert: ActivityInsert };
       runs: { Row: Run; Insert: RunInsert; Update: RunUpdate };
       cron_jobs: { Row: CronJob; Insert: CronJobInsert; Update: CronJobUpdate };
+      cron_run_history: { Row: CronRunHistory; Insert: CronRunHistoryInsert };
       nodes: { Row: Node; Insert: NodeInsert; Update: NodeUpdate };
       alerts: { Row: Alert; Insert: AlertInsert; Update: AlertUpdate };
       chat_sessions: { Row: ChatSession; Insert: ChatSessionInsert; Update: ChatSessionUpdate };
@@ -600,12 +601,14 @@ export type CronJobStatus = 'active' | 'paused' | 'failed';
 export interface CronJob {
   id: string;
   user_id: string;
+  name: string | null;
   schedule: string;
   status: CronJobStatus;
   next_run_time: string | null;
   description: string | null;
   payload: Record<string, unknown>;
   session_target: string | null;
+  isolation_setting: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -613,21 +616,48 @@ export interface CronJob {
 export interface CronJobInsert {
   id?: string;
   user_id: string;
+  name?: string | null;
   schedule: string;
   status?: CronJobStatus;
   next_run_time?: string | null;
   description?: string | null;
   payload?: Record<string, unknown>;
   session_target?: string | null;
+  isolation_setting?: boolean;
 }
 
 export interface CronJobUpdate {
+  name?: string | null;
   schedule?: string;
   status?: CronJobStatus;
   next_run_time?: string | null;
   description?: string | null;
   payload?: Record<string, unknown>;
   session_target?: string | null;
+  isolation_setting?: boolean;
+}
+
+export type CronRunHistoryStatus = 'running' | 'completed' | 'failed' | 'aborted';
+
+export interface CronRunHistory {
+  id: string;
+  job_id: string;
+  execution_time: string;
+  status: CronRunHistoryStatus;
+  output: string | null;
+  log: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface CronRunHistoryInsert {
+  id?: string;
+  job_id: string;
+  execution_time?: string;
+  status?: CronRunHistoryStatus;
+  output?: string | null;
+  log?: string | null;
+  metadata?: Record<string, unknown>;
 }
 
 export type NodeStatus = 'paired' | 'offline' | 'error';

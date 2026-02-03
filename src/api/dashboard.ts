@@ -8,6 +8,7 @@ import type {
   CronJob,
   CronJobInsert,
   CronJobUpdate,
+  CronRunHistory,
   Node,
   NodeInsert,
   NodeUpdate,
@@ -67,6 +68,22 @@ export const dashboardApi = {
     api.patch<CronJob>(`${DASHBOARD_BASE}/cron-jobs/${id}`, data),
   deleteCronJob: (id: string) =>
     api.delete(`${DASHBOARD_BASE}/cron-jobs/${id}`),
+  runCronJobNow: (id: string) =>
+    api.post<{ run_id: string }>(`${DASHBOARD_BASE}/cron-jobs/${id}/run-now`, {}),
+  getCronRunHistory: (jobId: string, params?: { limit?: number }) => {
+    const search = params
+      ? new URLSearchParams(
+          Object.fromEntries(
+            Object.entries(params)
+              .filter(([, v]) => v != null)
+              .map(([k, v]) => [k, String(v)])
+          )
+        ).toString()
+      : '';
+    return api.get<CronRunHistory[]>(
+      `${DASHBOARD_BASE}/cron-jobs/${jobId}/run-history${search ? `?${search}` : ''}`
+    );
+  },
 
   // Nodes
   getNodes: () =>

@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203270000_cron_jobs_name_isolation_run_history",
+  "created_at": "2025-02-03T27:00:00Z",
+  "description": "Add name and isolation_setting to cron_jobs; create cron_run_history for run history",
+  "tables_created": ["cron_run_history"],
+  "tables_modified": ["cron_jobs"],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS cron_run_history CASCADE; ALTER TABLE cron_jobs DROP COLUMN IF EXISTS isolation_setting; ALTER TABLE cron_jobs DROP COLUMN IF EXISTS name;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

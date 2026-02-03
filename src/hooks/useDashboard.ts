@@ -24,6 +24,8 @@ export const DASHBOARD_KEYS = {
   run: (id: string) => [...DASHBOARD_KEYS.all, 'run', id] as const,
   cronJobs: () => [...DASHBOARD_KEYS.all, 'cron-jobs'] as const,
   cronJob: (id: string) => [...DASHBOARD_KEYS.all, 'cron-job', id] as const,
+  cronRunHistory: (jobId: string, params?: { limit?: number }) =>
+    [...DASHBOARD_KEYS.all, 'cron-run-history', jobId, params] as const,
   nodes: () => [...DASHBOARD_KEYS.all, 'nodes'] as const,
   node: (id: string) => [...DASHBOARD_KEYS.all, 'node', id] as const,
   alerts: (params?: { resolution_status?: string }) =>
@@ -180,6 +182,33 @@ export function useDeleteCronJob() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to delete cron job');
+    },
+  });
+}
+
+export function useCronRunHistory(jobId: string | null, params?: { limit?: number }) {
+  return useQuery({
+    queryKey: DASHBOARD_KEYS.cronRunHistory(jobId ?? '', params),
+    queryFn: () =>
+      jobId
+        ? safeGet(() => dashboardApi.getCronRunHistory(jobId, params), [])
+        : Promise.resolve([]),
+    enabled: !!jobId,
+  });
+}
+
+export function useRunCronJobNow() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => dashboardApi.runCronJobNow(id),
+    onSuccess: (_, jobId) => {
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_KEYS.cronJobs() });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_KEYS.cronRunHistory(jobId) });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_KEYS.runs() });
+      toast.success('Job started');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to run job');
     },
   });
 }
