@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203200000_create_dashboard_tables",
+  "created_at": "2025-02-03T20:00:00Z",
+  "description": "Dashboard tables: activities, runs, cron_jobs, nodes, alerts",
+  "tables_created": ["activities", "runs", "cron_jobs", "nodes", "alerts"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS alerts CASCADE; DROP TABLE IF EXISTS nodes CASCADE; DROP TABLE IF EXISTS cron_jobs CASCADE; DROP TABLE IF EXISTS runs CASCADE; DROP TABLE IF EXISTS activities CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

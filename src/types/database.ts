@@ -31,8 +31,157 @@ export interface Database {
         Insert: LandingPricingPlanInsert;
         Update: LandingPricingPlanUpdate;
       };
+      activities: { Row: Activity; Insert: ActivityInsert };
+      runs: { Row: Run; Insert: RunInsert; Update: RunUpdate };
+      cron_jobs: { Row: CronJob; Insert: CronJobInsert; Update: CronJobUpdate };
+      nodes: { Row: Node; Insert: NodeInsert; Update: NodeUpdate };
+      alerts: { Row: Alert; Insert: AlertInsert; Update: AlertUpdate };
     };
   };
+}
+
+// ========== Dashboard (activities, runs, cron_jobs, nodes, alerts) ==========
+
+export type ActivityType = 'message' | 'tool_run' | 'cron_run' | 'node_event' | 'alert';
+
+export interface Activity {
+  id: string;
+  user_id: string;
+  activity_type: ActivityType;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ActivityInsert {
+  id?: string;
+  user_id: string;
+  activity_type: ActivityType;
+  details?: Record<string, unknown>;
+}
+
+export type RunStatus = 'running' | 'completed' | 'failed' | 'aborted';
+
+export interface Run {
+  id: string;
+  user_id: string;
+  status: RunStatus;
+  start_time: string;
+  end_time: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RunInsert {
+  id?: string;
+  user_id: string;
+  status?: RunStatus;
+  start_time?: string;
+  end_time?: string | null;
+  details?: Record<string, unknown>;
+}
+
+export interface RunUpdate {
+  status?: RunStatus;
+  end_time?: string | null;
+  details?: Record<string, unknown>;
+}
+
+export type CronJobStatus = 'active' | 'paused' | 'failed';
+
+export interface CronJob {
+  id: string;
+  user_id: string;
+  schedule: string;
+  status: CronJobStatus;
+  next_run_time: string | null;
+  description: string | null;
+  payload: Record<string, unknown>;
+  session_target: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CronJobInsert {
+  id?: string;
+  user_id: string;
+  schedule: string;
+  status?: CronJobStatus;
+  next_run_time?: string | null;
+  description?: string | null;
+  payload?: Record<string, unknown>;
+  session_target?: string | null;
+}
+
+export interface CronJobUpdate {
+  schedule?: string;
+  status?: CronJobStatus;
+  next_run_time?: string | null;
+  description?: string | null;
+  payload?: Record<string, unknown>;
+  session_target?: string | null;
+}
+
+export type NodeStatus = 'paired' | 'offline' | 'error';
+export type ConnectionHealth = 'healthy' | 'degraded' | 'unknown' | 'offline';
+
+export interface Node {
+  id: string;
+  user_id: string;
+  name: string | null;
+  status: NodeStatus;
+  capabilities: string[];
+  connection_health: ConnectionHealth;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NodeInsert {
+  id?: string;
+  user_id: string;
+  name?: string | null;
+  status?: NodeStatus;
+  capabilities?: string[];
+  connection_health?: ConnectionHealth;
+}
+
+export interface NodeUpdate {
+  name?: string | null;
+  status?: NodeStatus;
+  capabilities?: string[];
+  connection_health?: ConnectionHealth;
+}
+
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type AlertResolutionStatus = 'open' | 'acknowledged' | 'resolved';
+
+export interface Alert {
+  id: string;
+  user_id: string;
+  node_id: string | null;
+  type: string;
+  severity: AlertSeverity;
+  description: string;
+  resolution_status: AlertResolutionStatus;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AlertInsert {
+  id?: string;
+  user_id: string;
+  node_id?: string | null;
+  type: string;
+  severity: AlertSeverity;
+  description: string;
+  resolution_status?: AlertResolutionStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AlertUpdate {
+  resolution_status?: AlertResolutionStatus;
+  metadata?: Record<string, unknown>;
 }
 
 export interface LandingFeatureRow {
