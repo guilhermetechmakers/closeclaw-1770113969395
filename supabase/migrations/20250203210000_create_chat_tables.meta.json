@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203210000_create_chat_tables",
+  "created_at": "2025-02-03T21:00:00Z",
+  "description": "Chat sessions, messages, and tool invocations for Chat Session page",
+  "tables_created": ["chat_sessions", "chat_messages", "tool_invocations"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS tool_invocations CASCADE; DROP TABLE IF EXISTS chat_messages CASCADE; DROP TABLE IF EXISTS chat_sessions CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

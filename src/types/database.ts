@@ -36,8 +36,102 @@ export interface Database {
       cron_jobs: { Row: CronJob; Insert: CronJobInsert; Update: CronJobUpdate };
       nodes: { Row: Node; Insert: NodeInsert; Update: NodeUpdate };
       alerts: { Row: Alert; Insert: AlertInsert; Update: AlertUpdate };
+      chat_sessions: { Row: ChatSession; Insert: ChatSessionInsert; Update: ChatSessionUpdate };
+      chat_messages: { Row: ChatMessage; Insert: ChatMessageInsert; Update: ChatMessageUpdate };
+      tool_invocations: { Row: ToolInvocation; Insert: ToolInvocationInsert; Update: ToolInvocationUpdate };
     };
   };
+}
+
+// ========== Chat (chat_sessions, chat_messages, tool_invocations) ==========
+
+export type ChatSessionStatus = 'active' | 'paused' | 'ended';
+
+export interface ChatSession {
+  id: string;
+  user_id: string;
+  title: string;
+  status: ChatSessionStatus;
+  settings: Record<string, unknown>;
+  started_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatSessionInsert {
+  id?: string;
+  user_id: string;
+  title?: string;
+  status?: ChatSessionStatus;
+  settings?: Record<string, unknown>;
+  started_at?: string;
+}
+
+export interface ChatSessionUpdate {
+  title?: string;
+  status?: ChatSessionStatus;
+  settings?: Record<string, unknown>;
+}
+
+export type ChatMessageRole = 'user' | 'assistant' | 'system';
+
+export interface ChatMessage {
+  id: string;
+  session_id: string;
+  sender_id: string | null;
+  role: ChatMessageRole;
+  text: string;
+  attachment_links: { url: string; name?: string }[];
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ChatMessageInsert {
+  id?: string;
+  session_id: string;
+  sender_id?: string | null;
+  role?: ChatMessageRole;
+  text: string;
+  attachment_links?: { url: string; name?: string }[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface ChatMessageUpdate {
+  text?: string;
+  attachment_links?: { url: string; name?: string }[];
+  metadata?: Record<string, unknown>;
+}
+
+export type ToolInvocationStatus = 'pending' | 'running' | 'completed' | 'failed' | 'approved' | 'denied';
+
+export interface ToolInvocation {
+  id: string;
+  session_id: string;
+  message_id: string | null;
+  tool_name: string;
+  invocation_data: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  status: ToolInvocationStatus;
+  run_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ToolInvocationInsert {
+  id?: string;
+  session_id: string;
+  message_id?: string | null;
+  tool_name: string;
+  invocation_data?: Record<string, unknown>;
+  output?: Record<string, unknown> | null;
+  status?: ToolInvocationStatus;
+  run_id?: string | null;
+}
+
+export interface ToolInvocationUpdate {
+  output?: Record<string, unknown> | null;
+  status?: ToolInvocationStatus;
+  run_id?: string | null;
 }
 
 // ========== Dashboard (activities, runs, cron_jobs, nodes, alerts) ==========
