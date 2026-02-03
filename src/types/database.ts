@@ -76,9 +76,39 @@ export interface Database {
         Insert: PolicyDocumentInsert;
         Update: PolicyDocumentUpdate;
       };
+      error_logs: {
+        Row: ErrorLog;
+        Insert: ErrorLogInsert;
+        Update: ErrorLogUpdate;
+      };
     };
   };
 }
+
+// ========== Error Logs (404 / client errors) ==========
+
+export interface ErrorLog {
+  id: string;
+  error_code: string;
+  url_attempted: string;
+  user_id: string | null;
+  referrer_url: string | null;
+  user_agent: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ErrorLogInsert {
+  id?: string;
+  error_code: string;
+  url_attempted: string;
+  user_id?: string | null;
+  referrer_url?: string | null;
+  user_agent?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export type ErrorLogUpdate = Partial<Omit<ErrorLogInsert, 'id'>>;
 
 // ========== Logs & Tracing ==========
 
