@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203440000_create_marketplace_tables",
+  "created_at": "2025-02-03T44:00:00Z",
+  "description": "Payments & Marketplace: catalog skills, transactions, and user licenses",
+  "tables_created": ["marketplace_skills", "marketplace_transactions", "marketplace_licenses"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS marketplace_licenses CASCADE; DROP TABLE IF EXISTS marketplace_transactions CASCADE; DROP TABLE IF EXISTS marketplace_skills CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

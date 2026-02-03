@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  ShoppingBag,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,7 @@ const navItems = [
   { to: '/channels', label: 'Channels & Adapters', icon: Plug },
   { to: '/skills', label: 'Skills Library', icon: BookOpen },
   { to: '/skill-editor', label: 'Skill Editor', icon: FileText },
+  { to: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
   { to: '/nodes', label: 'Nodes', icon: Cpu },
   { to: '/cron', label: 'Cron Jobs', icon: Calendar },
   { to: '/webhooks', label: 'Webhooks & Hooks', icon: Webhook },

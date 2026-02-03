@@ -31,6 +31,9 @@ import { Admin } from '@/pages/admin';
 import { Help } from '@/pages/help';
 import { Privacy } from '@/pages/privacy';
 import { Terms } from '@/pages/terms';
+import { Marketplace } from '@/pages/marketplace';
+import { MarketplaceCheckout } from '@/pages/marketplace-checkout';
+import { MarketplaceLicenses } from '@/pages/marketplace-licenses';
 import { NotFound } from '@/pages/not-found';
 import { ServerError } from '@/pages/server-error';
 
@@ -71,6 +74,9 @@ export default function App() {
                 <Route path="/channels" element={<Channels />} />
                 <Route path="/skills" element={<Skills />} />
                 <Route path="/skill-editor/:skillId?" element={<SkillEditor />} />
+                <Route path="/marketplace" element={<Marketplace />} />
+                <Route path="/marketplace/checkout" element={<MarketplaceCheckout />} />
+                <Route path="/marketplace/licenses" element={<MarketplaceLicenses />} />
                 <Route path="/nodes" element={<Nodes />} />
                 <Route path="/cron" element={<Cron />} />
                 <Route path="/webhooks" element={<Webhooks />} />

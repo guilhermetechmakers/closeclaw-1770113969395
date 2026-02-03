@@ -139,6 +139,21 @@ export interface Database {
         Insert: AdminAnalyticsMetricInsert;
         Update: never;
       };
+      marketplace_skills: {
+        Row: MarketplaceSkill;
+        Insert: MarketplaceSkillInsert;
+        Update: MarketplaceSkillUpdate;
+      };
+      marketplace_transactions: {
+        Row: MarketplaceTransaction;
+        Insert: MarketplaceTransactionInsert;
+        Update: MarketplaceTransactionUpdate;
+      };
+      marketplace_licenses: {
+        Row: MarketplaceLicense;
+        Insert: MarketplaceLicenseInsert;
+        Update: MarketplaceLicenseUpdate;
+      };
     };
   };
 }
@@ -1857,4 +1872,121 @@ export interface AdminAnalyticsMetricInsert {
   value: number;
   bucket_time: string;
   dimensions?: Record<string, unknown>;
+}
+
+// ========== Payments & Marketplace ==========
+
+export type MarketplaceSkillStatus = 'active' | 'archived';
+
+export interface MarketplaceSkill {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  price: number;
+  currency: string;
+  provider_id: string | null;
+  image_url: string | null;
+  is_subscription: boolean;
+  status: MarketplaceSkillStatus;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MarketplaceSkillInsert {
+  id?: string;
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  price?: number;
+  currency?: string;
+  provider_id?: string | null;
+  image_url?: string | null;
+  is_subscription?: boolean;
+  status?: MarketplaceSkillStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MarketplaceSkillUpdate {
+  name?: string;
+  description?: string | null;
+  category?: string | null;
+  price?: number;
+  currency?: string;
+  provider_id?: string | null;
+  image_url?: string | null;
+  is_subscription?: boolean;
+  status?: MarketplaceSkillStatus;
+  metadata?: Record<string, unknown>;
+}
+
+export type MarketplaceTransactionStatus =
+  | 'pending'
+  | 'completed'
+  | 'failed'
+  | 'refunded'
+  | 'cancelled';
+
+export interface MarketplaceTransaction {
+  id: string;
+  user_id: string;
+  skill_id: string;
+  amount: number;
+  currency: string;
+  status: MarketplaceTransactionStatus;
+  stripe_payment_id: string | null;
+  stripe_subscription_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MarketplaceTransactionInsert {
+  id?: string;
+  user_id: string;
+  skill_id: string;
+  amount: number;
+  currency?: string;
+  status?: MarketplaceTransactionStatus;
+  stripe_payment_id?: string | null;
+  stripe_subscription_id?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MarketplaceTransactionUpdate {
+  status?: MarketplaceTransactionStatus;
+  stripe_payment_id?: string | null;
+  stripe_subscription_id?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export type MarketplaceLicenseActivationStatus = 'active' | 'inactive' | 'expired';
+
+export interface MarketplaceLicense {
+  id: string;
+  user_id: string;
+  skill_id: string;
+  transaction_id: string | null;
+  activation_status: MarketplaceLicenseActivationStatus;
+  expiration_date: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MarketplaceLicenseInsert {
+  id?: string;
+  user_id: string;
+  skill_id: string;
+  transaction_id?: string | null;
+  activation_status?: MarketplaceLicenseActivationStatus;
+  expiration_date?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MarketplaceLicenseUpdate {
+  activation_status?: MarketplaceLicenseActivationStatus;
+  expiration_date?: string | null;
+  metadata?: Record<string, unknown>;
 }

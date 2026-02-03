@@ -2,19 +2,27 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Search } from 'lucide-react';
+import { BookOpen, Search, ShoppingBag } from 'lucide-react';
 
 export function Skills() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Skills Library</h1>
-        <Button variant="outline" asChild>
-          <Link to="/skill-editor">
-            <BookOpen className="mr-2 h-4 w-4" />
-            Skill Editor
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/marketplace">
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Marketplace
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/skill-editor">
+              <BookOpen className="mr-2 h-4 w-4" />
+              Skill Editor
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
