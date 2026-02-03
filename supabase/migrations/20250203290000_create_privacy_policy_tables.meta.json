@@ -1,0 +1,12 @@
+{
+  "migration_name": "20250203290000_create_privacy_policy_tables",
+  "created_at": "2025-02-03T29:00:00Z",
+  "description": "Privacy policy settings (user opt-out) and versioned policy documents for display and download",
+  "tables_created": ["privacy_policy_settings", "policy_documents"],
+  "tables_modified": [],
+  "tables_deleted": [],
+  "breaking_changes": false,
+  "rollback_sql": "DROP TABLE IF EXISTS privacy_policy_settings CASCADE; DROP TABLE IF EXISTS policy_documents CASCADE;",
+  "estimated_rows": 0,
+  "requires_downtime": false
+}

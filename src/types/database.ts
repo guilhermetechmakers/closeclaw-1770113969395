@@ -66,6 +66,16 @@ export interface Database {
         Insert: LogRetentionSettingInsert;
         Update: LogRetentionSettingUpdate;
       };
+      privacy_policy_settings: {
+        Row: PrivacyPolicySetting;
+        Insert: PrivacyPolicySettingInsert;
+        Update: PrivacyPolicySettingUpdate;
+      };
+      policy_documents: {
+        Row: PolicyDocument;
+        Insert: PolicyDocumentInsert;
+        Update: PolicyDocumentUpdate;
+      };
     };
   };
 }
@@ -1164,4 +1174,50 @@ export interface BrowserCdpTokenUpdate {
   token_preview?: string | null;
   config_json?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
+}
+
+// ========== Privacy Policy ==========
+
+export interface PrivacyPolicySetting {
+  id: string;
+  user_id: string;
+  telemetry_opt_out: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PrivacyPolicySettingInsert {
+  id?: string;
+  user_id: string;
+  telemetry_opt_out?: boolean;
+}
+
+export interface PrivacyPolicySettingUpdate {
+  telemetry_opt_out?: boolean;
+}
+
+export type PolicyDocumentType = 'privacy' | 'terms';
+
+export interface PolicyDocument {
+  id: string;
+  document_type: PolicyDocumentType;
+  version: string;
+  content: string;
+  effective_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PolicyDocumentInsert {
+  id?: string;
+  document_type?: PolicyDocumentType;
+  version: string;
+  content: string;
+  effective_date: string;
+}
+
+export interface PolicyDocumentUpdate {
+  version?: string;
+  content?: string;
+  effective_date?: string;
 }
